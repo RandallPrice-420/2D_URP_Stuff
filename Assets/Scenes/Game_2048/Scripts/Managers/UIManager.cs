@@ -33,6 +33,7 @@ namespace Assets.Scenes.Game2048.Scripts
         // -------------------------------------------------------------------------
         // Private Methods:
         // ----------------
+        //   ChangeButtonState()
         //   OnDisable()
         //   OnEnable()
         //   OnGameOver()
@@ -122,13 +123,23 @@ namespace Assets.Scenes.Game2048.Scripts
         // -------------------------------------------------------------------------
         private void OnUpdateGameState(GameState state)
         {
-            _textGameState.text = $"Game State:  {state.ToString()}";
+            _textGameState.text = $"Game State:  <color=red><b>{state.ToString()}</b></color>";
 
             switch (state)
             {
                 case GameState.SpawnBlocks:
-                    ChangeButtonState(_buttonContinue, true);
-                    ChangeButtonState(_buttonQuit, true);
+                    //ChangeButtonState(_buttonContinue, true);
+                    //ChangeButtonState(_buttonQuit,     true);
+                    break;
+
+                case GameState.WaitingInput:
+                    //ChangeButtonState(_buttonContinue, true);
+                    //ChangeButtonState(_buttonQuit,     true);
+                    break;
+
+                case GameState.GameOver:
+                    ChangeButtonState(_buttonContinue, false);
+                    //ChangeButtonState(_buttonQuit, true);
                     break;
             }
 

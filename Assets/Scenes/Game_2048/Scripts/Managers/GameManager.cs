@@ -41,7 +41,7 @@ namespace Assets.Scenes.Game2048.Scripts
     [System.Serializable]
     public enum GameState
     {
-        //Initialize,
+        Blank,
         GenerateLevel,
         SpawnBlocks,
         WaitingInput,
@@ -97,36 +97,32 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         // Serialized Fields:
         // ------------------
-        //   _camera
         //   _height
         //   _width
+        //   _camera
         //   _blockPrefab
-        //   _boardPrefab
-        //   _nodePrefab
         //   _blockTypes
+        //   _boardPrefab
+        //   _buttonBackToMenu
         //   _buttonContinue
         //   _buttonDisabled
         //   _buttonQuit
-        ////   _buttonStart
-        ////   _buttonSprites
+        //   _nodePrefab
         // ---------------------------------------------------------------------
 
         #region .  Serialized Fields  .
 
+        [SerializeField] private int              _height;
+        [SerializeField] private int              _width;
         [SerializeField] private Camera           _camera;
-        [SerializeField] private int              _height = 4;
-        [SerializeField] private int              _width  = 4;
         [SerializeField] private Block            _blockPrefab;
-        [SerializeField] private Block[]          _blockPrefabs;
-        [SerializeField] private SpriteRenderer   _boardPrefab;
-        [SerializeField] private Node             _nodePrefab;
         [SerializeField] private List<BlockType>  _blockTypes;
+        [SerializeField] private SpriteRenderer   _boardPrefab;
+        [SerializeField] private Button           _buttonBackToMenu;
         [SerializeField] private Button           _buttonContinue;
         [SerializeField] private Button           _buttonDisabled;
-        //[SerializeField] private Button           _buttonRestart;
         [SerializeField] private Button           _buttonQuit;
-        //[SerializeField] private Button           _buttonStart;
-        //[SerializeField] private List<Sprite>     _buttonSprites;
+        [SerializeField] private Node             _nodePrefab;
 
         #endregion
 
@@ -183,12 +179,25 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         // Public Methods:
         // ---------------
+        //   ButtonBackToMenuClicked()
         //   ButtonContinueClicked()
         //   ButtonQuitClicked()
-        ////   ButtonRestartClicked()  --  COMMENTED OUT
-        ////   ButtonStartClicked()    --  COMMENTED OUT
-        //   SetBlockButtonStartClicked
         // ---------------------------------------------------------------------
+
+        #region .  ButtonBackToMenuClicked()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  ButtonBackToMenuClicked()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        public void ButtonBackToMenuClicked()
+        {
+            SceneManager.LoadScene("Scene_MainMenu");
+
+        }   // ButtonBackToMenuClicked()
+        #endregion
+
 
         #region .  ButtonContinueClicked()  .
         // ---------------------------------------------------------------------
@@ -199,7 +208,6 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         public void ButtonContinueClicked()
         {
-            //ChangeState(GameState.SpawnBlocks);
             SpawnBlocks(1);
 
         }   // ButtonContinueClicked()
@@ -226,76 +234,18 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
-        #region .  ButtonRestartClicked()  --  COMMENTED OUT  .
-        //// ---------------------------------------------------------------------
-        ////   Method.......:  ButtonRestartClicked()
-        ////   Description..:  
-        ////   Parameters...:  None
-        ////   Returns......:  Nothing
-        //// ---------------------------------------------------------------------
-        //public void ButtonRestartClicked()
-        //{
-        //    //ClearBlocks();
-        //    ChangeState(GameState.Initialize);
-
-        //}   // ButtonRestartClicked()
-        #endregion
-
-
-        #region .  ButtonStartClicked()  --  COMMENTED OUT  .
-        //// ---------------------------------------------------------------------
-        ////   Method.......:  ButtonStartClicked()
-        ////   Description..:  
-        ////   Parameters...:  None
-        ////   Returns......:  Nothing
-        //// ---------------------------------------------------------------------
-        //public void ButtonStartClicked()
-        //{
-        //    ChangeState(GameState.SpawnBlocks);
-
-        //}   // ButtonStartClicked()
-        #endregion
-
-
 
         // ---------------------------------------------------------------------
         // private Methods:
         // ----------------
-        //   ChangeButtonState()  --  COMMENTED OUT
         //   ChangeState()
-        //   ClearBlocks()
         //   GameOver
         //   GenerateLevel()
-        //   Initialize()         --  COMMENTED OUT
+        //   GetNodeAtPosition()
         //   Start()
         //   SpawnBlocks()
+        //   Update()
         // ---------------------------------------------------------------------
-
-        #region .  ChangeButtonState()  --  COMMENTED OUT  .
-        //// ---------------------------------------------------------------------
-        ////   Method.......:  ChangeButtonState()
-        ////   Description..:  
-        ////   Parameters...:  None
-        ////   Returns......:  Nothing
-        //// ---------------------------------------------------------------------
-        //private void ChangeButtonState(Button button, bool state)
-        //{
-        //    switch (state)
-        //    {
-        //        case true:
-        //            button.interactable = state;
-        //            button.GetComponent<Image>().sprite = _buttonSprites[int.Parse(button.tag)];
-        //            break;
-
-        //        case false:
-        //            button.interactable = state;
-        //            button.GetComponent<Image>().sprite = _buttonSprites[0];
-        //            break;
-        //    }
-
-        //}   // ChangeButtonState()
-        #endregion
-
 
         #region .  ChangeState()  .
         // ---------------------------------------------------------------------
@@ -308,27 +258,14 @@ namespace Assets.Scenes.Game2048.Scripts
         {
             _currentState = newState;
 
-            switch (_currentState)
+            switch (newState)
             {
-                //case GameState.Initialize:
-                //    Initialize();
-                //    break;
-
                 case GameState.GenerateLevel:
                     GenerateLevel();
-                    ChangeState(GameState.SpawnBlocks);
                     break;
 
                 case GameState.SpawnBlocks:
                     SpawnBlocks((_round++ == 0) ? 2 : 1);
-
-                    //ChangeButtonState(_buttonStart,    false);
-                    //ChangeButtonState(_buttonContinue, true );
-                    //ChangeButtonState(_buttonRestart,  true );
-                    //ChangeButtonState(_buttonQuit,     true );
-
-                    ChangeState(GameState.WaitingInput);
-                    OnGameStateChanged?.Invoke(newState);
                     break;
 
                 case GameState.WaitingInput:
@@ -351,6 +288,7 @@ namespace Assets.Scenes.Game2048.Scripts
                     break;
             }
 
+            OnGameStateChanged?.Invoke(newState);
 
         }   // ChangeState()
         #endregion
@@ -365,11 +303,6 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void GameOver()
         {
-            //_buttonStart.interactable = true;
-            _buttonContinue.interactable = false;
-            _buttonQuit    .interactable = true;
-            //_buttonRestart .interactable = true;
-
             // Need logic to determine the next game state.
 
         }   // GameOver()
@@ -406,6 +339,8 @@ namespace Assets.Scenes.Game2048.Scripts
 
             _camera.transform.position = new Vector3(center.x, center.y, -10);
 
+            ChangeState(GameState.SpawnBlocks);
+
         }   // GenerateLevel()
         #endregion
 
@@ -424,24 +359,6 @@ namespace Assets.Scenes.Game2048.Scripts
             return node;
 
         }   // GetNodeAtPosition()
-        #endregion
-
-
-        #region .  Initialize()  --  COMMENTED OUT  .
-        //// ---------------------------------------------------------------------
-        ////   Method.......:  Initialize()
-        ////   Description..:  
-        ////   Parameters...:  None
-        ////   Returns......:  Nothing
-        //// ---------------------------------------------------------------------
-        //private void Initialize()
-        //{
-        //    _blocks = new List<Block>();
-        //    _nodes  = new List<Node>();
-
-        //    ChangeState(GameState.GenerateLevel);
-
-        //}   // Initialize()
         #endregion
 
 
@@ -498,6 +415,7 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void Start()
         {
+            _currentState = GameState.Blank;
             ChangeState(GameState.GenerateLevel);
 
         }   // Start()
@@ -517,10 +435,8 @@ namespace Assets.Scenes.Game2048.Scripts
 
             foreach (var node in freeNodes.Take(amount))
             {
-                //Debug.Log($"Free node at {node.Position}");
-
                 BlockType blockType = GetBlockTypeByValue(Random.value > 0.8 ? 4 : 2);
-                Block newBlock = Instantiate(blockType.BlockPrefab, node.Position, Quaternion.identity);
+                Block     newBlock  = Instantiate(blockType.BlockPrefab, node.Position, Quaternion.identity);
                 newBlock.Value = blockType.Value;
                 newBlock.SetBlock(node);
 
@@ -536,6 +452,8 @@ namespace Assets.Scenes.Game2048.Scripts
                 OnGameOver?.Invoke();
                 return;
             }
+
+            ChangeState(GameState.WaitingInput);
 
         }   // SpawnBlocks
         #endregion

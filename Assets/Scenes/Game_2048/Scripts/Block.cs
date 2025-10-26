@@ -37,24 +37,8 @@ namespace Assets.Scenes.Game2048.Scripts
        // ---------------------------------------------------------------------
         // Public Methods:
         // ---------------
-        //   InitializeBlock()
         //   SetBlock()
         // ---------------------------------------------------------------------
-
-        #region .  InitializeBlock()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  InitializeBlock()
-        //   Description..:  
-        //   Parameters...:  BlockType
-        //   Returns......:  Nothing
-        // ---------------------------------------------------------------------
-        public void InitializeBlock(BlockType blockType)
-        {
-            Value = blockType.Value;
-
-        }   // InitializeBlock()
-        #endregion
-
 
         #region .  SetBlock()  .
         // ---------------------------------------------------------------------

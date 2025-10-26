@@ -12,6 +12,6 @@ EditorBuildSettings:
     path: Assets/Scenes/LineDrawing/Scene_LineDrawing.unity
     guid: dbd75fc6fc6bc284ba312cb570cf589a
   - enabled: 1
-    path: Assets/Scenes/Game2048_Old/Scene_Game2048_Old.unity
-    guid: 43e15322204cecb43a6a579114114198
+    path: Assets/Scenes/GameOfLife/Scene_GameOfLife.unity
+    guid: a4ee25935d963384b898b7ebd5c6d4c6
   m_configObjects: {}

@@ -22,6 +22,7 @@ namespace Assets.Scenes.Game2048.Scripts
     {
         public int    Value;
         public Sprite Sprite;
+        public Block  BlockPrefab;
 
     }   // struct BlockType
 
@@ -116,6 +117,7 @@ namespace Assets.Scenes.Game2048.Scripts
         [SerializeField] private int              _height = 4;
         [SerializeField] private int              _width  = 4;
         [SerializeField] private Block            _blockPrefab;
+        [SerializeField] private Block[]          _blockPrefabs;
         [SerializeField] private SpriteRenderer   _boardPrefab;
         [SerializeField] private Node             _nodePrefab;
         [SerializeField] private List<BlockType>  _blockTypes;
@@ -158,8 +160,22 @@ namespace Assets.Scenes.Game2048.Scripts
 
         #region .  Private Getters  .
 
-        private BlockType GetBlockTypeByValue(int value) => _blockTypes.First(t => t.Value == value);
+        //private BlockType GetBlockTypeByValue(int value) => _blockTypes.First(t => t.Value == value);
+        private BlockType GetBlockTypeByValue(int value)
+        {
+            int i = 0;
 
+            for (i = 0; i < _blockTypes.Count(); i++)
+            {
+                if (_blockTypes[i].Value == value)
+                {
+                    break;
+                }
+            }
+
+            return _blockTypes[i];
+
+        }   // GetBlockTypeByValue()
         #endregion
 
 
@@ -503,9 +519,11 @@ namespace Assets.Scenes.Game2048.Scripts
             {
                 //Debug.Log($"Free node at {node.Position}");
 
-                Block newBlock = Instantiate(_blockPrefab, node.Position, Quaternion.identity);
-                newBlock.InitializeBlock(GetBlockTypeByValue(Random.value > 0.8 ? 4 : 2));
+                BlockType blockType = GetBlockTypeByValue(Random.value > 0.8 ? 4 : 2);
+                Block newBlock = Instantiate(blockType.BlockPrefab, node.Position, Quaternion.identity);
+                newBlock.Value = blockType.Value;
                 newBlock.SetBlock(node);
+
                 _blocks.Add(newBlock);
 
                 node.OccupiedBlock = newBlock;

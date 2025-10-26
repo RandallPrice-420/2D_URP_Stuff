@@ -1392,31 +1392,43 @@ MonoBehaviour:
   _height: 4
   _width: 4
   _blockPrefab: {fileID: 6201129407667330161, guid: 29d40461cc3e3b84abee281a34a33b6f, type: 3}
+  _blockPrefabs: []
   _boardPrefab: {fileID: 3515008637275354751, guid: 75ccb01a4aec36d4ca7ab3c6981a53fc, type: 3}
   _nodePrefab: {fileID: 3296638485029042766, guid: e0071a1325702084b8e91dba1ddbac4b, type: 3}
   _blockTypes:
   - Value: 2
     Sprite: {fileID: 21300000, guid: f2692c7c35f63484d9db597c3324d5d5, type: 3}
+    BlockPrefab: {fileID: 4902306571947641673, guid: 806188ae44be9874aa9cc7d7548e648e, type: 3}
   - Value: 4
     Sprite: {fileID: 21300000, guid: 64981ad616f582e4992f7351ff6b0bec, type: 3}
+    BlockPrefab: {fileID: 6580932126550144765, guid: 9f54b01c267bbc44ca74109b09b8205f, type: 3}
   - Value: 8
     Sprite: {fileID: 21300000, guid: 5a1edd96d381f784f8e1eb2b4c20e9c8, type: 3}
+    BlockPrefab: {fileID: 8480748685607460231, guid: 02e3d4fe9a1f87a43944bbb62963f2aa, type: 3}
   - Value: 16
     Sprite: {fileID: 21300000, guid: 3456e7e2fb0baaf4ab863cd45530f5e7, type: 3}
+    BlockPrefab: {fileID: 3818462561343590118, guid: 4970a4e37a36245439f1ce337544430d, type: 3}
   - Value: 32
     Sprite: {fileID: 21300000, guid: 3ce8fce92196a364fbab3adddc19d9f8, type: 3}
+    BlockPrefab: {fileID: 430653129824899539, guid: 36d7b9c554c1e8c43999e1dc8fb2c933, type: 3}
   - Value: 64
     Sprite: {fileID: 21300000, guid: f61cddd58964e004bb2026f4ac07efb0, type: 3}
+    BlockPrefab: {fileID: 7453231748253440172, guid: bec4a2378757ce34b8f0e20f92c066d2, type: 3}
   - Value: 128
     Sprite: {fileID: 21300000, guid: 03d7b6a30fe985d4b811ea3980bc45cc, type: 3}
+    BlockPrefab: {fileID: 4327926087711808260, guid: b0c0490f0a1af6842bb1fb4ea5aeaa40, type: 3}
   - Value: 256
     Sprite: {fileID: 21300000, guid: df9db90d67ce6ce459123fb0d21e59dd, type: 3}
+    BlockPrefab: {fileID: 144691235492506634, guid: 4042df185bc4aed4caade68803339f5c, type: 3}
   - Value: 512
     Sprite: {fileID: 21300000, guid: 7d7c273b742130c4d90b2ae04fd89417, type: 3}
+    BlockPrefab: {fileID: 6950825209033765382, guid: 5581c90f370eea44fa0cd4c0fdde5371, type: 3}
   - Value: 1024
     Sprite: {fileID: 21300000, guid: ab4f412fa0a6a824c985d4100c887a88, type: 3}
+    BlockPrefab: {fileID: 1475314845472600091, guid: 5b9e4347d147ca74184f71bf528a42bf, type: 3}
   - Value: 2048
     Sprite: {fileID: 21300000, guid: 13790394d05477e4081ff629e27b7985, type: 3}
+    BlockPrefab: {fileID: 2015096657659726681, guid: f364e02d7214f2f43ae98425551eb0d1, type: 3}
   _buttonContinue: {fileID: 1489785607}
   _buttonDisabled: {fileID: 1727636461}
   _buttonQuit: {fileID: 246449240}

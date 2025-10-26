@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -108,6 +109,7 @@ namespace Assets.Scenes.Game2048.Scripts
         //   _buttonDisabled
         //   _buttonQuit
         //   _nodePrefab
+        //   _travelTime
         // ---------------------------------------------------------------------
 
         #region .  Serialized Fields  .
@@ -123,6 +125,7 @@ namespace Assets.Scenes.Game2048.Scripts
         [SerializeField] private Button           _buttonDisabled;
         [SerializeField] private Button           _buttonQuit;
         [SerializeField] private Node             _nodePrefab;
+        [SerializeField] private float            _travelTime = 0.5f;
 
         #endregion
 
@@ -362,6 +365,40 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
+        #region .  MergeBlocks()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  MergeBlocks()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void MergeBlocks(Block baseBlock, Block mergingBlock)
+        {
+            SpawnBlock(baseBlock.Node, baseBlock.Value * 2);
+
+            RemoveBlock(baseBlock);
+            RemoveBlock(mergingBlock);
+
+        }   // MergeBlocks()
+        #endregion
+
+
+        #region .  RemoveBlock()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  RemoveBlock()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void RemoveBlock(Block block)
+        {
+            _blocks.Remove(block);
+            Destroy(block.gameObject);
+
+        }   // RemoveBlock()
+        #endregion
+
+
         #region .  Shift()  .
         // ---------------------------------------------------------------------
         //   Method.......:  Shift()
@@ -371,6 +408,8 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void Shift(Vector2 direction)
         {
+            ChangeState(GameState.Moving);
+
             var orderBlocks = _blocks.OrderBy(b => b.Position.x).ThenBy(b => b.Position.y).ToList();
 
             if (direction == Vector2.right || direction == Vector2.up)
@@ -387,20 +426,41 @@ namespace Assets.Scenes.Game2048.Scripts
                     block.SetBlock(next);
 
                     var possibleNode = GetNodeAtPosition(next.Position + direction);
-
                     if (possibleNode != null)
                     {
-                        if (possibleNode.OccupiedBlock == null)
+                        // A node is present, so if it's possible to merge than set the merge.
+                        if ((possibleNode.OccupiedBlock != null) && (possibleNode.OccupiedBlock.CanMerge(block.Value)))
+                        {
+                            block.MergeBlock(possibleNode.OccupiedBlock);
+                        }
+                        else if (possibleNode.OccupiedBlock == null)
                         {
                             next = possibleNode;
                         }
                     }
 
-
                 } while (next != block.Node);
-
-                block.transform.position = block.Node.Position;
             }
+
+            var sequence = DOTween.Sequence();
+
+            foreach (var block in orderBlocks)
+            {
+                var movePoint = (block.MergingBlock != null) ? block.MergingBlock.Node.Position : block.Node.Position;
+                sequence.Insert(0, block.transform.DOMove(block.Node.Position, _travelTime));
+            }
+
+            sequence.OnComplete(() =>
+            {
+                foreach (var block in orderBlocks.Where(b => b.MergingBlock != null))
+                {
+                    MergeBlocks(block.MergingBlock, block);
+                }
+
+                ChangeState(GameState.SpawnBlocks);
+            });
+
+
 
         }   // Shift()
         #endregion
@@ -422,6 +482,26 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
+        #region .  SpawnBlock()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  SpawnBlock()
+        //   Description..:  
+        //   Parameters...:  int
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void SpawnBlock(Node node, int value)
+        {
+            BlockType blockType = GetBlockTypeByValue(value);
+            Block     newBlock  = Instantiate(blockType.BlockPrefab, node.Position, Quaternion.identity);
+            newBlock.Value = blockType.Value;
+            newBlock.SetBlock(node);
+
+            _blocks.Add(newBlock);
+
+        }   // SpawnBlock
+        #endregion
+
+
         #region .  SpawnBlocks()  .
         // ---------------------------------------------------------------------
         //   Method.......:  SpawnBlocks()
@@ -435,14 +515,7 @@ namespace Assets.Scenes.Game2048.Scripts
 
             foreach (var node in freeNodes.Take(amount))
             {
-                BlockType blockType = GetBlockTypeByValue(Random.value > 0.8 ? 4 : 2);
-                Block     newBlock  = Instantiate(blockType.BlockPrefab, node.Position, Quaternion.identity);
-                newBlock.Value = blockType.Value;
-                newBlock.SetBlock(node);
-
-                _blocks.Add(newBlock);
-
-                node.OccupiedBlock = newBlock;
+                SpawnBlock(node, Random.value > 0.8 ? 4 : 2);
             }
 
             //if (freeNodes.Count() == 1)
@@ -473,10 +546,10 @@ namespace Assets.Scenes.Game2048.Scripts
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                Shift(Vector2.left);
-            }
+            if (Input.GetKeyDown(KeyCode.LeftArrow )) Shift(Vector2.left );
+            if (Input.GetKeyDown(KeyCode.RightArrow)) Shift(Vector2.right);
+            if (Input.GetKeyDown(KeyCode.UpArrow   )) Shift(Vector2.up   );
+            if (Input.GetKeyDown(KeyCode.DownArrow )) Shift(Vector2.down );
 
         }   // Update()
         #endregion

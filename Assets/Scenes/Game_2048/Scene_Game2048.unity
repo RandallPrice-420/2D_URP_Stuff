@@ -1433,6 +1433,7 @@ MonoBehaviour:
   _buttonDisabled: {fileID: 1727636461}
   _buttonQuit: {fileID: 246449240}
   _nodePrefab: {fileID: 3296638485029042766, guid: e0071a1325702084b8e91dba1ddbac4b, type: 3}
+  _travelTime: 0.2
 --- !u!1 &1489785605
 GameObject:
   m_ObjectHideFlags: 0

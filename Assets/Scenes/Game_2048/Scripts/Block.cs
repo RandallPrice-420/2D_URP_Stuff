@@ -1,5 +1,6 @@
 using UnityEngine;
 
+
 namespace Assets.Scenes.Game2048.Scripts
 {
     public class Block : MonoBehaviour
@@ -9,12 +10,16 @@ namespace Assets.Scenes.Game2048.Scripts
         // ------------------
         //   Value
         //   Node
+        //   Merging
+        //   MergingBlock
         // ---------------------------------------------------------------------
 
         #region .  Public Methods  .
 
-        public int  Value;
-        public Node Node;
+        public int   Value;
+        public Node  Node;
+        public bool  Merging;
+        public Block MergingBlock;
 
         #endregion
 
@@ -23,10 +28,15 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         // Private Getters:
         // ----------------
+        //   CanMerge
         //   Position
         // ---------------------------------------------------------------------
 
         #region .  Public Getters  .
+
+        public bool CanMerge(int value) => (value        == Value) && 
+                                           (Merging      == false) &&
+                                           (MergingBlock == null );
 
         public Vector2 Position => transform.position;
 
@@ -34,11 +44,34 @@ namespace Assets.Scenes.Game2048.Scripts
 
 
 
-       // ---------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         // Public Methods:
         // ---------------
+        //   MergeBlock()
         //   SetBlock()
         // ---------------------------------------------------------------------
+
+        #region .  MergeBlock()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  MergeBlock()
+        //   Description..:  
+        //   Parameters...:  Node
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        public void MergeBlock(Block blockToMergeWith)
+        {
+            // Set the block to merge with.
+            MergingBlock = blockToMergeWith;
+
+            // Set current as unoccupied to allow other blocks to use it.
+            Node.OccupiedBlock = null;
+
+            // Set the base block as merging so it does not get used more than once.
+            blockToMergeWith.Merging = true;
+
+        }   // SetMergeBlockBlock()
+        #endregion
+
 
         #region .  SetBlock()  .
         // ---------------------------------------------------------------------

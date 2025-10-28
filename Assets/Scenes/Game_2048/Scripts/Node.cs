@@ -43,7 +43,7 @@ namespace Assets.Scenes.Game2048.Scripts
 
         #region .  Public Getters  .
 
-        public Vector2 Position => transform.position;
+        public Vector2 Position => this.transform.position;
 
         #endregion
 

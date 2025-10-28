@@ -4,7 +4,6 @@ using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 
@@ -43,13 +42,13 @@ namespace Assets.Scenes.Game2048.Scripts
     public enum GameState
     {
         Blank,
+        Initialize,
         GenerateLevel,
         SpawnBlocks,
         WaitingInput,
         Moving,
-        GameOver,
-        Win,
-        Lose,
+        LoseGame,
+        WinGame,
         Quit
     }
 
@@ -62,13 +61,15 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         // Public Events:
         // --------------
-        //   OnGameOver
+        //   OnLoseGame
+        //   OnWinGame
         //   OnGameStateChanged
         // ---------------------------------------------------------------------
 
         #region .  Public Events  .
 
-        public static event Action            OnGameOver         = delegate { };
+        public static event Action            OnLoseGame         = delegate { };
+        public static event Action            OnWinGame          = delegate { };
         public static event Action<GameState> OnGameStateChanged = delegate { };
 
         #endregion
@@ -104,28 +105,26 @@ namespace Assets.Scenes.Game2048.Scripts
         //   _blockPrefab
         //   _blockTypes
         //   _boardPrefab
-        //   _buttonBackToMenu
-        //   _buttonContinue
-        //   _buttonDisabled
-        //   _buttonQuit
         //   _nodePrefab
+        //   _panelLoseScreen
+        //   _panelWinScreen
         //   _travelTime
+        //   _winCondition
         // ---------------------------------------------------------------------
 
         #region .  Serialized Fields  .
 
-        [SerializeField] private int              _height;
-        [SerializeField] private int              _width;
-        [SerializeField] private Camera           _camera;
-        [SerializeField] private Block            _blockPrefab;
-        [SerializeField] private List<BlockType>  _blockTypes;
-        [SerializeField] private SpriteRenderer   _boardPrefab;
-        [SerializeField] private Button           _buttonBackToMenu;
-        [SerializeField] private Button           _buttonContinue;
-        [SerializeField] private Button           _buttonDisabled;
-        [SerializeField] private Button           _buttonQuit;
-        [SerializeField] private Node             _nodePrefab;
-        [SerializeField] private float            _travelTime = 0.5f;
+        [SerializeField] private int             _height;
+        [SerializeField] private int             _width;
+        [SerializeField] private Camera          _camera;
+        [SerializeField] private Block           _blockPrefab;
+        [SerializeField] private List<BlockType> _blockTypes;
+        [SerializeField] private SpriteRenderer  _boardPrefab;
+        [SerializeField] private Node            _nodePrefab;
+        [SerializeField] private GameObject      _panelLoseScreen;
+        [SerializeField] private GameObject      _panelWinScreen;
+        [SerializeField] private float           _travelTime   = 0.5f;
+        [SerializeField] private int             _winCondition = 2048;
 
         #endregion
 
@@ -180,11 +179,26 @@ namespace Assets.Scenes.Game2048.Scripts
 
 
         // ---------------------------------------------------------------------
-        // Public Methods:
-        // ---------------
+        // private Methods:
+        // ----------------
         //   ButtonBackToMenuClicked()
-        //   ButtonContinueClicked()
+        //   ButtonPlayAgainClicked()
         //   ButtonQuitClicked()
+        //   ChangeState()
+        //   GenerateLevel()
+        //   GetNodeAtPosition()
+        //   Initialize()
+        //   LoseGame
+        //   MergeBlocks
+        //   OnDisable()
+        //   OnEnable()
+        //   RemoveBlock()
+        //   ShiftBlocks()
+        //   Start()
+        //   SpawnBlock()
+        //   SpawnBlocks()
+        //   Update()
+        //   WinGame
         // ---------------------------------------------------------------------
 
         #region .  ButtonBackToMenuClicked()  .
@@ -202,18 +216,29 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
-        #region .  ButtonContinueClicked()  .
+        #region .  ButtonPlayAgainClicked()  .
         // ---------------------------------------------------------------------
-        //   Method.......:  ButtonContinueClicked()
+        //   Method.......:  ButtonPlayAgainClicked()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
-        public void ButtonContinueClicked()
+        public void ButtonPlayAgainClicked()
         {
-            SpawnBlocks(1);
+            _panelWinScreen .gameObject.SetActive(false);
+            _panelLoseScreen.gameObject.SetActive(false);
 
-        }   // ButtonContinueClicked()
+            var occupiedNodes = _nodes.Where(n => n.OccupiedBlock != null).ToList();
+
+            // Get 2 nodes on the first round and 1 node for all of the rest.
+            foreach (var node in occupiedNodes)
+            {
+                RemoveBlock(node.OccupiedBlock);
+            }
+
+            ChangeState(GameState.Initialize);
+
+        }   // ButtonPlayAgainClicked()
         #endregion
 
 
@@ -227,7 +252,7 @@ namespace Assets.Scenes.Game2048.Scripts
         public void ButtonQuitClicked()
         {
 #if UNITY_EDITOR
-            SceneManager.LoadScene("Scene_MainMenu");
+            //SceneManager.LoadScene("Scene_MainMenu");
 
             UnityEditor.EditorApplication.isPlaying = false;
 #endif
@@ -236,19 +261,6 @@ namespace Assets.Scenes.Game2048.Scripts
         }   // ButtonQuitClicked()
         #endregion
 
-
-
-        // ---------------------------------------------------------------------
-        // private Methods:
-        // ----------------
-        //   ChangeState()
-        //   GameOver
-        //   GenerateLevel()
-        //   GetNodeAtPosition()
-        //   Start()
-        //   SpawnBlocks()
-        //   Update()
-        // ---------------------------------------------------------------------
 
         #region .  ChangeState()  .
         // ---------------------------------------------------------------------
@@ -263,6 +275,10 @@ namespace Assets.Scenes.Game2048.Scripts
 
             switch (newState)
             {
+                case GameState.Initialize:
+                    Initialize();
+                    break;
+
                 case GameState.GenerateLevel:
                     GenerateLevel();
                     break;
@@ -277,14 +293,12 @@ namespace Assets.Scenes.Game2048.Scripts
                 case GameState.Moving:
                     break;
 
-                case GameState.GameOver:
-                    GameOver();
+                case GameState.LoseGame:
+                    LoseGame();
                     break;
 
-                case GameState.Win:
-                    break;
-
-                case GameState.Lose:
+                case GameState.WinGame:
+                    WinGame();
                     break;
 
                 case GameState.Quit:
@@ -297,21 +311,6 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
-        #region .  GameOver()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  GameOver()
-        //   Description..:  
-        //   Parameters...:  None
-        //   Returns......:  Nothing
-        // ---------------------------------------------------------------------
-        private void GameOver()
-        {
-            // Need logic to determine the next game state.
-
-        }   // GameOver()
-        #endregion
-
-
         #region .  GenerateLevel()  .
         // ---------------------------------------------------------------------
         //   Method.......:  GenerateLevel()
@@ -321,13 +320,6 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void GenerateLevel()
         {
-            _blocks = new List<Block>();
-            _nodes  = new List<Node>();
-
-            var center = new Vector2((float)(_width / 2f) - 0.5f, (float)(_height / 2f) - 0.5f);
-            var board  = Instantiate(_boardPrefab, center, Quaternion.identity);
-            board.size = new Vector2(_width, _height);
-
             int index = 0;
 
             for (int x = 0; x < _height; x++)
@@ -339,8 +331,6 @@ namespace Assets.Scenes.Game2048.Scripts
                     _nodes.Add(node);
                 }
             }
-
-            _camera.transform.position = new Vector3(center.x, center.y, -10);
 
             ChangeState(GameState.SpawnBlocks);
 
@@ -365,6 +355,51 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
+        #region .  Initialize()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  Initialize()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void Initialize()
+        {
+            _currentState = GameState.Blank;
+            _round        = 0;
+
+            _blocks       = new List<Block>();
+            _nodes        = new List<Node>();
+
+            var center = new Vector2((float)(_width / 2f) - 0.5f, (float)(_height / 2f) - 0.5f);
+            var board  = Instantiate(_boardPrefab, center, Quaternion.identity);
+            board.size = new Vector2(_width, _height);
+
+            _camera.transform.position = new Vector3(center.x, center.y, -10);
+
+            ChangeState(GameState.GenerateLevel);
+
+        }   // Initialize()
+        #endregion
+
+
+        #region .  LoseGame()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  LoseGame()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void LoseGame()
+        {
+            _panelLoseScreen.SetActive(true);
+            OnLoseGame?.Invoke();
+
+            // Need logic to determine the next game state.
+
+        }   // LoseGame()
+        #endregion
+
+
         #region .  MergeBlocks()  .
         // ---------------------------------------------------------------------
         //   Method.......:  MergeBlocks()
@@ -383,7 +418,41 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
-        #region .  RemoveBlock()  .
+        #region .  OnDisable()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  OnDisable()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void OnDisable()
+        {
+            UIManager.OnButtonBackToMenuClicked  -= ButtonBackToMenuClicked;
+            UIManager.OnButtonPlayAgainClicked -= ButtonPlayAgainClicked;
+            UIManager.OnButtonQuitClicked      -= ButtonQuitClicked;
+
+        }   // OnDisable()
+        #endregion
+
+
+        #region .  OnEnable()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  OnEnable()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void OnEnable()
+        {
+            UIManager.OnButtonBackToMenuClicked  += ButtonBackToMenuClicked;
+            UIManager.OnButtonPlayAgainClicked += ButtonPlayAgainClicked;
+            UIManager.OnButtonQuitClicked      += ButtonQuitClicked;
+
+        }   // OnEnable()
+        #endregion
+
+
+        #region.  RemoveBlock()  .
         // ---------------------------------------------------------------------
         //   Method.......:  RemoveBlock()
         //   Description..:  
@@ -399,14 +468,14 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
-        #region .  Shift()  .
+        #region .  ShiftBlocks()  .
         // ---------------------------------------------------------------------
-        //   Method.......:  Shift()
+        //   Method.......:  ShiftBlocks()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
-        private void Shift(Vector2 direction)
+        private void ShiftBlocks(Vector2 direction)
         {
             ChangeState(GameState.Moving);
 
@@ -460,9 +529,7 @@ namespace Assets.Scenes.Game2048.Scripts
                 ChangeState(GameState.SpawnBlocks);
             });
 
-
-
-        }   // Shift()
+        }   // ShiftBlocks()
         #endregion
 
 
@@ -475,8 +542,7 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void Start()
         {
-            _currentState = GameState.Blank;
-            ChangeState(GameState.GenerateLevel);
+            ChangeState(GameState.Initialize);
 
         }   // Start()
         #endregion
@@ -493,6 +559,7 @@ namespace Assets.Scenes.Game2048.Scripts
         {
             BlockType blockType = GetBlockTypeByValue(value);
             Block     newBlock  = Instantiate(blockType.BlockPrefab, node.Position, Quaternion.identity);
+
             newBlock.Value = blockType.Value;
             newBlock.SetBlock(node);
 
@@ -511,21 +578,37 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void SpawnBlocks(int amount)
         {
-            var freeNodes = _nodes.Where(n => n.OccupiedBlock == null).OrderBy(b => Random.value).ToList();
+            var availableNodes = _nodes.Where(n => n.OccupiedBlock == null).OrderBy(b => Random.value).ToList();
 
-            foreach (var node in freeNodes.Take(amount))
+            // Get 2 nodes on the first round and 1 node for all of the rest.
+            foreach (var node in availableNodes.Take(amount))
             {
+                // Spawn a random node:  80% chance for a 2, 20% chance for a 4.
                 SpawnBlock(node, Random.value > 0.8 ? 4 : 2);
             }
 
-            //if (freeNodes.Count() == 1)
-            if (freeNodes.Count() < 2)
+            // Check for the game over condition (when there is only one free node left).
+            if (availableNodes.Count() == 1)
             {
-                // Lost the game.
-                OnGameOver?.Invoke();
+                ChangeState(GameState.LoseGame);
                 return;
             }
 
+            foreach (var block in _blocks)
+            {
+                if (block.Value == _winCondition)
+                {
+                    ChangeState(GameState.WinGame);
+                    return;
+                }
+            }
+
+            // Check for a wining condition, if not then continue waiting for the users' next move.
+            GameState newState = _blocks.Any(b => b.Value == _winCondition) ? GameState.WinGame : GameState.WaitingInput;
+
+            //Debug.Log($"newState = {newState.ToString()}, Max block value = {_blocks.Max(b => b.Value)}, Need {_winCondition} to win.");
+
+            //ChangeState(newState);
             ChangeState(GameState.WaitingInput);
 
         }   // SpawnBlocks
@@ -546,12 +629,30 @@ namespace Assets.Scenes.Game2048.Scripts
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow )) Shift(Vector2.left );
-            if (Input.GetKeyDown(KeyCode.RightArrow)) Shift(Vector2.right);
-            if (Input.GetKeyDown(KeyCode.UpArrow   )) Shift(Vector2.up   );
-            if (Input.GetKeyDown(KeyCode.DownArrow )) Shift(Vector2.down );
+            if (Input.GetKeyDown(KeyCode.LeftArrow )) ShiftBlocks(Vector2.left );
+            if (Input.GetKeyDown(KeyCode.RightArrow)) ShiftBlocks(Vector2.right);
+            if (Input.GetKeyDown(KeyCode.UpArrow   )) ShiftBlocks(Vector2.up   );
+            if (Input.GetKeyDown(KeyCode.DownArrow )) ShiftBlocks(Vector2.down );
 
         }   // Update()
+        #endregion
+
+
+        #region .  WinGame()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  WinGame()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void WinGame()
+        {
+            _panelWinScreen.SetActive(true);
+            OnWinGame?.Invoke();
+
+            // Need logic to determine the next game state.
+
+        }   // WinGame()
         #endregion
 
 

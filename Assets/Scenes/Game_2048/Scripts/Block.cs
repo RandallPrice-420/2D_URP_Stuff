@@ -14,7 +14,7 @@ namespace Assets.Scenes.Game2048.Scripts
         //   MergingBlock
         // ---------------------------------------------------------------------
 
-        #region .  Public Methods  .
+        #region .  Public Properties  .
 
         public int   Value;
         public Node  Node;
@@ -61,10 +61,10 @@ namespace Assets.Scenes.Game2048.Scripts
         public void MergeBlock(Block blockToMergeWith)
         {
             // Set the block to merge with.
-            MergingBlock = blockToMergeWith;
+            this.MergingBlock = blockToMergeWith;
 
             // Set current as unoccupied to allow other blocks to use it.
-            Node.OccupiedBlock = null;
+            this.Node.OccupiedBlock = null;
 
             // Set the base block as merging so it does not get used more than once.
             blockToMergeWith.Merging = true;
@@ -82,9 +82,10 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         public void SetBlock(Node newNode)
         {
-            if (Node != null) Node.OccupiedBlock = null;
-            Node = newNode;
-            Node.OccupiedBlock = this;
+            if (this.Node != null) this.Node.OccupiedBlock = null;
+
+            this.Node = newNode;
+            this.Node.OccupiedBlock = this;
 
         }   // SetBlock()
         #endregion

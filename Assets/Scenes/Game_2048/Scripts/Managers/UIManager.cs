@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -9,113 +8,64 @@ namespace Assets.Scenes.Game2048.Scripts
     public class UIManager : MonoBehaviour
     {
         // ---------------------------------------------------------------------
-        // Public Events:
-        // --------------
-        //   OnButtonBackToMenuClicked
-        //   OnButtonPlayAgainClicked
-        //   OnButtonQuitClicked
-        // ---------------------------------------------------------------------
-
-        #region .  Public Events  .
-
-        public static event Action OnButtonBackToMenuClicked  = delegate { };
-        public static event Action OnButtonPlayAgainClicked = delegate { };
-        public static event Action OnButtonQuitClicked      = delegate { };
-
-        #endregion
-
-
-
-        // ---------------------------------------------------------------------
         // Serialized Fields:
         // ------------------
         //   _buttonSprites
-        //   _textGameState
-        //   _panelLoseScreen
-        //   _panelWinScreen
+        //   _panelGameOver
+        //   _textBestValue
+        //   _textGameOverLabel
+        //   _textGameStateLabel
+        //   _textMovesValue
+        //   _textScoreValue
+        //   _textWinConditionValue
+        //   _textYouWinLabel
         // ---------------------------------------------------------------------
 
         #region .  Serialized Fields  .
 
         [SerializeField] private List<Sprite> _buttonSprites;
-        [SerializeField] private TMP_Text     _textGameState;
-        [SerializeField] private GameObject   _panelLoseScreen;
-        [SerializeField] private GameObject   _panelWinScreen;
+        [SerializeField] private GameObject   _panelGameOver;
+        [SerializeField] private TMP_Text     _textBestValue;
+        [SerializeField] private TMP_Text     _textGameOverLabel;
+        [SerializeField] private TMP_Text     _textGameStateLabel;
+        [SerializeField] private TMP_Text     _textMovesValue;
+        [SerializeField] private TMP_Text     _textScoreValue;
+        [SerializeField] private TMP_Text     _textWinConditionValue;
+        [SerializeField] private TMP_Text     _textYouWinLabel;
 
         #endregion
 
 
-
-
-        // ---------------------------------------------------------------------
-        // Public Methods:
-        // ---------------
-        //   InvokeEvent
-        // ---------------------------------------------------------------------
-
-        #region .  InvokeEvent()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  InvokeEvent()
-        //   Description..:  
-        //   Parameters...:  string
-        //   Returns......:  Nothing
-        // ---------------------------------------------------------------------
-        public void InvokeEvent(string eventName)
-        {
-            switch (eventName)
-            {
-                case "BackToMenu":
-                    OnButtonBackToMenuClicked?.Invoke();
-                    break;
-
-                case "PlayAgain":
-                    OnButtonPlayAgainClicked?.Invoke();
-                    break;
-
-                case "Quit":
-                    OnButtonQuitClicked?.Invoke();
-                    break;
-            }
-
-        }   // InvokeEvent()
-        #endregion
-
- 
 
         // -------------------------------------------------------------------------
         // Private Methods:
         // ----------------
-        //   ChangeButtonState()  -- COMMENTED OUT
+        //   GameOver()
         //   OnDisable()
         //   OnEnable()
-        //   LoseGame()
-        //   WinGame()
         //   UpdateGameStateText()
+        //   UpdateMovesText()
+        //   UpdateScoreText()
+        //   UpdateWinText()
+        //   UpdateWinConditionText()
         // -------------------------------------------------------------------------
 
-        #region .  ChangeButtonState()  -- COMMENTED OUT  .
-        //// ---------------------------------------------------------------------
-        ////   Method.......:  ChangeButtonState()
-        ////   Description..:  
-        ////   Parameters...:  None
-        ////   Returns......:  Nothing
-        //// ---------------------------------------------------------------------
-        //private void ChangeButtonState(Button button, bool state)
-        //{
-        //    switch (state)
-        //    {
-        //        case true:
-        //            button.interactable = state;
-        //            button.GetComponent<Image>().sprite = _buttonSprites[int.Parse(button.tag)];
-        //            break;
+        #region .  GameOver()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  GameOver()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void GameOver(GameState state)
+        {
+            _panelGameOver.SetActive(true);
+            _textGameOverLabel.gameObject.SetActive(state == GameState.LoseGame);
+            _textYouWinLabel  .gameObject.SetActive(state == GameState.WinGame);
 
-        //        case false:
-        //            button.interactable = state;
-        //            button.GetComponent<Image>().sprite = _buttonSprites[0];
-        //            break;
-        //    }
+            UpdateGameStateText(state);
 
-        //}   // ChangeButtonState()
+        }   // GameOver()
         #endregion
 
 
@@ -128,9 +78,12 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void OnDisable()
         {
-            GameManager.OnLoseGame         -= LoseGame;
-            GameManager.OnWinGame          -= WinGame;
-            GameManager.OnGameStateChanged -= UpdateGameStateText;
+            GameManager.OnGameOver            -= GameOver;
+            GameManager.OnBestScoreChanged    -= UpdateBestText;
+            GameManager.OnGameStateChanged    -= UpdateGameStateText;
+            GameManager.OnMove                -= UpdateMovesText;
+            GameManager.OnScoreChanged        -= UpdateScoreText;
+            GameManager.OnWinConditionChanged -= UpdateWinConditionText;
 
         }   // OnDisable()
         #endregion
@@ -145,43 +98,30 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void OnEnable()
         {
-            GameManager.OnLoseGame         += LoseGame;
-            GameManager.OnWinGame          += WinGame;
-            GameManager.OnGameStateChanged += UpdateGameStateText;
+            GameManager.OnGameOver            += GameOver;
+            GameManager.OnBestScoreChanged    += UpdateBestText;
+            GameManager.OnGameStateChanged    += UpdateGameStateText;
+            GameManager.OnMove                += UpdateMovesText;
+            GameManager.OnScoreChanged        += UpdateScoreText;
+            GameManager.OnWinConditionChanged += UpdateWinConditionText;
 
         }   // OnEnable()
         #endregion
 
 
-        #region .  LoseGame()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  LoseGame()
+        #region .  UpdateBestText()  .
+        // -------------------------------------------------------------------------
+        //   Method.......:  UpdateBestText()
         //   Description..:  
-        //   Parameters...:  None
+        //   Parameters...:  int
         //   Returns......:  Nothing
-        // ---------------------------------------------------------------------
-        private void LoseGame()
+        // -------------------------------------------------------------------------
+        private void UpdateBestText(int value)
         {
-            _panelLoseScreen.SetActive(true);
-            UpdateGameStateText(GameState.LoseGame);
+            _textBestValue.text = value.ToString();
+            PlayerPrefs.SetInt("BestScore", value);
 
-        }   // LoseGame()
-        #endregion
-
-
-        #region .  WinGame()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  WinGame()
-        //   Description..:  
-        //   Parameters...:  None
-        //   Returns......:  Nothing
-        // ---------------------------------------------------------------------
-        private void WinGame()
-        {
-            _panelWinScreen.SetActive(true);
-            UpdateGameStateText(GameState.WinGame);
-
-        }   // WinGame()
+        }   // UpdateBestText()
         #endregion
 
 
@@ -197,11 +137,56 @@ namespace Assets.Scenes.Game2048.Scripts
             string color = (state == GameState.WaitingInput) ? "blue"
                          : (state == GameState.LoseGame    ) ? "red"
                          : (state == GameState.WinGame     ) ? "green"
-                         : "black";
+                         : "white";
 
-            _textGameState.text = $"Game State:  <color={color}><b>{state.ToString()}</b></color>";
+            _textGameStateLabel.text = $"Game State:  <color={color}><b>{state.ToString()}</b></color>";
 
         }   // UpdateGameState()
+        #endregion
+
+
+        #region .  UpdateMovesText()  .
+        // -------------------------------------------------------------------------
+        //   Method.......:  UpdateMovesText()
+        //   Description..:  
+        //   Parameters...:  int
+        //   Returns......:  Nothing
+        // -------------------------------------------------------------------------
+        private void UpdateMovesText(int value)
+        {
+            _textMovesValue.text = value.ToString();
+
+        }   // UpdateMovesText()
+        #endregion
+
+
+        #region .  UpdateScoreText()  .
+        // -------------------------------------------------------------------------
+        //   Method.......:  UpdateScoreText()
+        //   Description..:  
+        //   Parameters...:  int
+        //   Returns......:  Nothing
+        // -------------------------------------------------------------------------
+        private void UpdateScoreText(int value)
+        {
+            _textScoreValue.text = value.ToString();
+
+        }   // UpdateScoreText()
+        #endregion
+
+
+        #region .  UpdateWinConditionText()  .
+        // -------------------------------------------------------------------------
+        //   Method.......:  UpdateWinConditionText()
+        //   Description..:  
+        //   Parameters...:  int
+        //   Returns......:  Nothing
+        // -------------------------------------------------------------------------
+        private void UpdateWinConditionText(int value)
+        {
+            _textWinConditionValue.text = value.ToString();
+
+        }   // UpdateWinConditionText()
         #endregion
 
 

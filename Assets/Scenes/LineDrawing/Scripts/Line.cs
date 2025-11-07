@@ -24,12 +24,12 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing
 
 
         // ---------------------------------------------------------------------
-        // Private Properties:
-        // -------------------
+        // Private Variables:
+        // ------------------
         //   _linePoints
         // ---------------------------------------------------------------------
 
-        #region .  Private Properties  .
+        #region .  Private Variables  .
 
         private readonly List<Vector2> _linePoints = new();
 
@@ -103,8 +103,7 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing
         // ---------------------------------------------------------------------
         private bool CanAppend(Vector2 currrentPosition)
         {
-            if (_lineRenderer.positionCount == 0)
-                return true;
+            if (_lineRenderer.positionCount == 0) return true;
 
             Vector2 lastPosition = _lineRenderer.GetPosition(_lineRenderer.positionCount - 1);
             float   distance     = Vector2.Distance(lastPosition, currrentPosition);

@@ -53,3 +53,6 @@ TagManager:
   - name: Panels
     uniqueID: 3360130945
     locked: 0
+  - name: High Scores
+    uniqueID: 1187902913
+    locked: 0

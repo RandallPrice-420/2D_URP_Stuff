@@ -9,9 +9,15 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu/Scene_MainMenu.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
-    path: Assets/Scenes/LineDrawing/Scene_LineDrawing.unity
-    guid: dbd75fc6fc6bc284ba312cb570cf589a
+    path: Assets/Scenes/Game_2048/Scene_Game2048.unity
+    guid: b74064c9e5a18b64ba6c70ba5471c6f5
   - enabled: 1
     path: Assets/Scenes/GameOfLife/Scene_GameOfLife.unity
-    guid: a4ee25935d963384b898b7ebd5c6d4c6
+    guid: b4e11b51e111e63458075921ff143303
+  - enabled: 1
+    path: Assets/Scenes/HighScores/Scene_HighScores.unity
+    guid: 3fabc61b4a649334eb0459977d663333
+  - enabled: 1
+    path: Assets/Scenes/LineDrawing/Scene_LineDrawing.unity
+    guid: dbd75fc6fc6bc284ba312cb570cf589a
   m_configObjects: {}

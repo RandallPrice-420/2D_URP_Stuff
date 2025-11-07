@@ -7,17 +7,21 @@ using Random = UnityEngine.Random;
 
 namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
 {
-    public class SpawnManager : MonoBehaviour
+    public class SpawnManager : Singleton<SpawnManager>
     {
         // ---------------------------------------------------------------------
         // Public Events:
         // --------------
+        //   OnBallDestroyed
         //   OnBallSpawned
+        //   OnBallStarted
         // ---------------------------------------------------------------------
 
         #region .  Public Events  .
 
-        public static event Action<int> OnBallSpawned = delegate { };
+        public static event Action<int>     OnBallDestroyed = delegate { };
+        public static event Action<int>     OnBallSpawned   = delegate { };
+        public static event Action<Vector2> OnBallStarted   = delegate { };
 
         #endregion
 
@@ -53,14 +57,14 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
 
 
         // ---------------------------------------------------------------------
-        // Private Properties:
-        // -------------------
+        // Private Variables:
+        // ------------------
         //   _ballCount
         //   _camera
         //   _canSpawn
         // ---------------------------------------------------------------------
 
-        #region .  Private Properties  .
+        #region .  Private Variables  .
 
         private int    _ballCount;
         private Camera _camera;
@@ -80,11 +84,27 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         //   SpawnBall()
         //   SpawnBallRandom()
         //   Start()
-        //   ToggleAutomaticModeClicked()
-        //   ToggleFloodModeClicked()
+        //   ToggleAutomaticModeChanged()
+        //   ToggleFloodModeChanged()
         //   Update()
         //   WaitForSomeTime()
         // ---------------------------------------------------------------------
+
+        #region .  BallDestroyed  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  BallDestroyed()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void BallDestroyed()
+        {
+            _ballCount--;
+            OnBallDestroyed?.Invoke(_ballCount);
+
+        }   // BallDestroyed()
+        #endregion
+
 
         #region .  ButtonResetClicked  .
         // ---------------------------------------------------------------------
@@ -118,7 +138,8 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         // ---------------------------------------------------------------------
         private Vector3 GetRandomPosition()
         {
-            Vector3 position = new Vector3(Random.Range(0f, Screen.width), Random.Range(0f, Screen.width), 0f);
+            //Vector3 position = new(Random.Range(0f, Screen.width), Random.Range(0f, Screen.height), 0f);
+            Vector3 position = new(Random.Range(_minOffsetX, _maxOffsetX), Random.Range(_minOffsetY, _maxOffsetY), 0f);
 
             return position;
 
@@ -152,8 +173,9 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         // ---------------------------------------------------------------------
         private void OnDisable()
         {
+            Ball     .OnBallDestroyed              -= BallDestroyed;
             UIManager.OnButtonResetClicked         -= ButtonResetClicked;
-            UIManager.OnToggleAutomaticModeClicked -= ToggleAutomaticModeClicked;
+            UIManager.OnToggleAutomaticModeChanged -= ToggleAutomaticModeChanged;
 
         }   // OnDisable()
         #endregion
@@ -168,8 +190,9 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         // ---------------------------------------------------------------------
         private void OnEnable()
         {
+            Ball     .OnBallDestroyed              += BallDestroyed;
             UIManager.OnButtonResetClicked         += ButtonResetClicked;
-            UIManager.OnToggleAutomaticModeClicked += ToggleAutomaticModeClicked;
+            UIManager.OnToggleAutomaticModeChanged += ToggleAutomaticModeChanged;
 
         }   // OnEnable()
         #endregion
@@ -182,20 +205,24 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         //   Parameters...:  None
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
+        //private IEnumerator SpawnBall(Vector2 position)
         private void SpawnBall(Vector2 position)
         {
-            Vector2 spawnPosition = _camera.ScreenToWorldPoint(new Vector3(position.x,
-                                                                       position.y,
-                                                                       Mathf.Abs(_camera.transform.position.x)));
-
-            //Debug.Log($"spawnPosition:  {spawnPosition}");
+            //Vector2 spawnPosition = _camera.ScreenToWorldPoint(new Vector3(position.x,
+            //                                                               position.y,
+            //                                                               Mathf.Abs(_camera.transform.position.x)));
+            Vector2 spawnPosition = _camera.ScreenToWorldPoint(new Vector2(position.x, position.y));
 
             // Instantiate the ball prefab at the mouse position.
             int  index = Random.Range(0, _ballPrefabs.Length - 1);
             Ball ball  = Instantiate(_ballPrefabs[index], spawnPosition, Quaternion.identity);
 
             _ballCount++;
+
             OnBallSpawned?.Invoke(_ballCount);
+            OnBallStarted?.Invoke(spawnPosition);
+
+            //yield return null;
 
         }   // SpawnBall()
         #endregion
@@ -208,15 +235,17 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         //   Parameters...:  None
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
+        //private IEnumerator SpawnBallRandom()
         private void SpawnBallRandom()
         {
             if (_toggleAutomaticMode.isOn && !_toggleFloodMode.isOn)
             {
-                Vector3 position = new(Random.Range(_minOffsetX, Screen.width  - _maxOffsetX),
-                                   Random.Range(_minOffsetY, Screen.height - _maxOffsetY),
-                                   0f);
-                SpawnBall(position);
+                Vector3 spawnPosition = new(Random.Range(0f, (float)Screen.width), 0f, 0f);
+                //StartCoroutine(SpawnBall(spawnPosition));
+                SpawnBall(spawnPosition);
             }
+
+            //yield return null;
 
         }   // SpawnballRandom()
         #endregion
@@ -229,11 +258,12 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         //   Parameters...:  None
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
-        IEnumerator SpawnBallWithWaitTime(float waitTime)
+        private IEnumerator SpawnBallWithWaitTime(float waitTime)
         {
             yield return new WaitForSeconds(waitTime);
 
             Vector3 spawnPosition = GetRandomPosition();
+            //StartCoroutine(SpawnBall(spawnPosition));
             SpawnBall(spawnPosition);
 
             _canSpawn = true;
@@ -251,21 +281,21 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         // ---------------------------------------------------------------------
         private void Start()
         {
-            _camera = Camera.main;
+            _camera   = Camera.main;
             _canSpawn = true;
 
         }   // Start()
         #endregion
 
 
-        #region .  ToggleAutomaticModeClicked()  .
+        #region .  ToggleAutomaticModeChanged()  .
         // ---------------------------------------------------------------------
-        //   Method.......:  ToggleAutomaticModeClicked()
+        //   Method.......:  ToggleAutomaticModeChanged()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
-        private void ToggleAutomaticModeClicked()
+        private void ToggleAutomaticModeChanged()
         {
             _canSpawn = _toggleAutomaticMode.isOn;
 
@@ -273,21 +303,21 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         #endregion
 
 
-        #region .  ToggleFloodModeClicked()  --  COMMENTED OUT  .
+        #region .  ToggleFloodModeChanged()  --  COMMENTED OUT  .
         //// -------------------------------------------------------------------------
-        ////   Method.......:  ToggleFloodModeClicked()
+        ////   Method.......:  ToggleFloodModeChanged()
         ////   Description..:  
         ////   Parameters...:  None
         ////   Returns......:  Nothing
         //// -------------------------------------------------------------------------
-        //private void ToggleFloodModeClicked()
+        //private void ToggleFloodModeChanged()
         //{
         //    //_toggleAutomaticMode.interactable = !_toggleFloodMode.isOn;
         //    //_toggleAutomaticMode.isOn = _toggleFloodMode.isOn
         //    //                                  ? false
         //    //                                  : _toggleAutomaticMode.isOn;
 
-        //}   // ToggleFloodModeClicked()
+        //}   // ToggleFloodModeChanged()
         #endregion
 
 
@@ -300,8 +330,11 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         // ---------------------------------------------------------------------
         private void Update()
         {
-            //UpdateMousePosition();
             Vector3 spawnPosition;
+            //Vector3 spawnPosition = Utils.RestrictValue(Input.mousePosition, _minOffsetX, _maxOffsetX, _minOffsetY, _maxOffsetY);
+
+            //if (spawnPosition.x < _minOffsetX) spawnPosition.x = _minOffsetX;
+            //if (spawnPosition.x > _maxOffsetX) spawnPosition.x = _maxOffsetX;
 
             if (_toggleAutomaticMode.isOn)
             {
@@ -319,8 +352,14 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
             }
             else if ((Input.GetMouseButtonDown(1) && !_toggleAutomaticMode.isOn))
             {
-                spawnPosition = Input.mousePosition;
+                spawnPosition = Utils.RestrictValue(Input.mousePosition, _minOffsetX, _maxOffsetX, _minOffsetY, _maxOffsetY);
                 SpawnBall(spawnPosition);
+
+                //if ((spawnPosition.x >= _minOffsetX) && (spawnPosition.x <= _maxOffsetX))
+                //{
+                //    spawnPosition.x = Mathf.Clamp(spawnPosition.x, _minOffsetX, _maxOffsetX);
+                //    SpawnBall(spawnPosition);
+                //}
             }
 
         }   // Update()
@@ -338,7 +377,7 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         {
             while (true)
             {
-                //Debug.Log($"Method waits for {waitTime} second!");
+                //print($"Method waits for {waitTime} second!");
 
                 yield return new WaitForSeconds(waitTime);
             }

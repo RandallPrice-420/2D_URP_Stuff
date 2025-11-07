@@ -1,0 +1,644 @@
+using System;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Random = UnityEngine.Random;
+
+
+namespace Assets.Scenes.Game2048.Scripts
+{
+    public class HighScoresManager : Singleton<HighScoresManager>
+    {
+        // ---------------------------------------------------------------------
+        // Private Classes:
+        // ----------------
+        //   HighScoreEntry
+        //   HighScores
+        // ---------------------------------------------------------------------
+
+        #region .  HighScoreEntry  .
+        // ---------------------------------------------------------------------
+        //   Class........:  HighScoreEntry
+        //   Description..:  An individual high score entry.
+        //   Properties...:  int    score
+        //                   int    moves
+        //                   string name
+        // ---------------------------------------------------------------------
+        [System.Serializable]
+        private class HighScoreEntry
+        {
+            public int    score;
+            public int    moves;
+            public string name;
+
+        }   // class HighScoreEntry
+        #endregion
+
+
+        #region .  HighScores  .
+        // ---------------------------------------------------------------------
+        //   Class........:  HighScores
+        //   Description..:  
+        //   Properties...:  List<HighScoreEntry> HighScoresList
+        // ---------------------------------------------------------------------
+        private class HighScores
+        {
+            public List<HighScoreEntry> HighScoresList;
+
+        }   // class HighScores
+        #endregion
+
+
+
+        // ---------------------------------------------------------------------
+        // Public Properties:
+        // ------------------
+        //   BestScore
+        //   LowestScore
+        //   HighScoreCount
+        //   MaximumEntries
+        // ---------------------------------------------------------------------
+
+        #region .  Public Properties  .
+
+        public int BestScore      =  0;
+        public int LowestScore    =  0;
+        public int HighScoreCount =  0;
+        public int MaximumEntries = 10;
+
+        #endregion
+
+
+
+        // ---------------------------------------------------------------------
+        // Serialized Fields:
+        // ------------------
+        //   _entryContainer
+        //   _entryTemplate
+        //   _loadDefaultValues
+        //   _textEntryContainerValue
+        //   _textEntryTemplateValue
+        //   _textEntryTransformValue
+        //   _textEntryRectTransformValue
+        //   _textAnchoredPositionValue
+        // ---------------------------------------------------------------------
+
+        #region .  Serialized Fields  .
+
+        [SerializeField] private Transform _entryContainer;
+        [SerializeField] private Transform _entryTemplate;
+        [SerializeField] private bool      _loadDefaultValues = false;
+        [SerializeField] private TMP_Text  _textEntryContainerValue;
+        [SerializeField] private TMP_Text  _textEntryTemplateValue;
+        [SerializeField] private TMP_Text  _textEntryTransformValue;
+        [SerializeField] private TMP_Text  _textEntryRectTransformValue;
+        [SerializeField] private TMP_Text  _textAnchoredPositionValue;
+
+        #endregion
+
+
+
+        // ---------------------------------------------------------------------
+        // Private Properties:
+        // -------------------
+        //   _colorGold
+        //   _colorSilver
+        //   _colorBronze
+        //   _highScores
+        //   _highScoresList
+        //   _HIGH_SCORE_TABLE
+        // ---------------------------------------------------------------------
+
+        #region .  Private Properties  .
+
+        private Color           _colorGold;
+        private Color           _colorSilver;
+        private Color           _colorBronze;
+        private HighScores      _highScores;
+
+        private List<Transform> _highScoresList = new();
+
+        private const string    _HIGH_SCORE_TABLE = "HighScoreTable";
+
+        #endregion
+
+
+
+        // ---------------------------------------------------------------------
+        // Public Methods:
+        // ---------------
+        //   AddHighScoreEntry()
+        //   ClearHighScores()
+        //   DisplayHighScores()
+        //   GetHighScores()
+        //   Initialize()
+        // ---------------------------------------------------------------------
+
+        #region .  AddHighScoreEntry()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  AddHighScoreEntry()
+        //   Description..:  Add a new entry to the high scores list.
+        //   Parameters...:  int    : the player's score.
+        //                   string : the player's name.
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        public void AddHighScoreEntry(int score, int moves, string name)
+        {
+            // Create HighScoreEntry.
+            HighScoreEntry highScoreEntry = new HighScoreEntry { score = score, moves = moves, name = name };
+
+            // Load saved HighScores.
+            string jsonString = PlayerPrefs.GetString(_HIGH_SCORE_TABLE);
+            _highScores       = JsonUtility.FromJson<HighScores>(jsonString);
+
+            if (_highScores == null)
+            {
+                // There's no stored table, initialize.
+                _highScores = new HighScores()
+                {
+                    HighScoresList = new List<HighScoreEntry>()
+                };
+            }
+
+            // Add new entry to HighScores.
+            _highScores.HighScoresList.Add(highScoreEntry);
+
+            // Save updated HighScores.
+            jsonString = JsonUtility.ToJson(_highScores);
+            PlayerPrefs.SetString(_HIGH_SCORE_TABLE, jsonString);
+            PlayerPrefs.Save();
+
+        }   // AddHighScoreEntry()
+        #endregion
+
+
+        #region .  ClearHighScores()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  ClearHighScores()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        public void ClearHighScores()
+        {
+            PlayerPrefs.DeleteKey("BestScore");
+            PlayerPrefs.DeleteKey(_HIGH_SCORE_TABLE);
+            Debug.Log($"PlayerPrefs key [{_HIGH_SCORE_TABLE}] and [BestScore] values deleted.");
+
+            string           targetName      = "HighScoreEntryTemplate(Clone)"; // Replace with the name you're looking for
+            GameObject[]     allObjects      = FindObjectsOfType<GameObject>();
+            List<GameObject> matchingObjects = new();
+
+            foreach (GameObject obj in allObjects)
+            {
+                if (obj.name == targetName)
+                {
+                    matchingObjects.Add(obj);
+                }
+            }
+
+            Debug.Log($"Found {matchingObjects.Count} objects with the name '{targetName}'.");
+
+            foreach (GameObject gameObject in matchingObjects)
+            {
+                Debug.Log($"Destroying {gameObject.name} object.");
+                Destroy(gameObject);
+            }
+
+            Initialize();
+
+        }   // ClearHighScores()
+        #endregion
+
+
+        #region .  DisplayHighScores()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  DisplayHighScores()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        public void DisplayHighScores()
+        {
+            if (_highScores != null)
+            {
+                float templateHeight = 20f;
+
+                foreach (HighScoreEntry highScoreEntry in _highScores.HighScoresList)
+                {
+                    Transform     entryTransform     = Instantiate(_entryTemplate, _entryContainer);
+                    RectTransform entryRectTransform = entryTransform.GetComponent<RectTransform>();
+
+                    // Add it to the entries list.
+                    _highScoresList.Add(entryTransform);
+
+                    entryRectTransform.anchoredPosition = new Vector2(0, -templateHeight * _highScoresList.Count);
+
+                    _textEntryContainerValue      .text = _entryContainer.transform.position.ToString();
+                    _textEntryTemplateValue       .text = _entryTemplate .transform.position.ToString();
+                    _textEntryTransformValue .text = _entryTemplate .transform.position.ToString();
+
+                    // Get references to the UI objects in the entry template.
+                    Transform background  = entryTransform.Find("Image_BackgroundEntry");
+                    Image     imageTrophy = entryTransform.Find("Image_Trophy"  ).GetComponent<Image>();
+                    TMP_Text  textMoves   = entryTransform.Find("TMP_Text_Moves").GetComponent<TMP_Text>();
+                    TMP_Text  textRank    = entryTransform.Find("TMP_Text_Rank" ).GetComponent<TMP_Text>();
+                    TMP_Text  textScore   = entryTransform.Find("TMP_Text_Score").GetComponent<TMP_Text>();
+                    TMP_Text  textName    = entryTransform.Find("TMP_Text_Name" ).GetComponent<TMP_Text>();
+
+                    int rank = _highScoresList.Count;
+
+                    string rankString;
+
+                    switch (rank)
+                    {
+                        case 1:
+                            rankString        = "1<sup>st</sup>";
+                            imageTrophy.color = _colorGold;
+                            textRank   .color = _colorGold;
+                            textMoves  .color = _colorGold;
+                            textScore  .color = _colorGold;
+                            textName   .color = _colorGold;
+                            break;
+
+                        case 2:
+                            rankString        = "2<sup>nd</sup>";
+                            imageTrophy.color = _colorSilver;
+                            textRank   .color = _colorSilver;
+                            textMoves  .color = _colorSilver;
+                            textScore  .color = _colorSilver;
+                            textName   .color = _colorSilver;
+                            break;
+
+                        case 3:
+                            rankString        = "3<sup>rd</sup>";
+                            imageTrophy.color = _colorBronze;
+                            textRank   .color = _colorBronze;
+                            textMoves  .color = _colorBronze;
+                            textScore  .color = _colorBronze;
+                            textName   .color = _colorBronze;
+                            break;
+
+                        default:
+                            rankString        = $"{rank}<sup>th</sup>";
+                            imageTrophy.gameObject.SetActive(false);
+                            break;
+                    }
+
+                    // Set background visible odds and evens, easier to read.
+                    background.gameObject.SetActive(rank % 2 == 1);
+
+                    // Assign the entry values to their respective Text objects.
+                    textRank .text = rankString;
+                    textMoves.text = highScoreEntry.moves.ToString();
+                    textScore.text = highScoreEntry.score.ToString();
+                    textName .text = highScoreEntry.name;
+                            
+                    // Show the panel.
+                    entryTransform.gameObject.SetActive(true);
+                }
+            }
+
+            HighScoreCount = _highScoresList.Count;
+
+        }   // DisplayHighScores()
+        #endregion
+
+
+        #region .  GetHighScores()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  GetHighScores()
+        //   Description..:  Get a list of the high scores from PlayerPrefs.  If
+        //                   _loadDefaultValues is true, than initialize the list
+        //                   with random sample entries.  The list is sorted from
+        //                   highest to lowest score.  This method only loads the
+        //                   high scores, it does not add them to the display.
+        //   Parameters...:  None
+        //   Returns......:  _highScores = the high score entries.
+        //                   BestScore   = the highest score.
+        //                   LowestScore = the lowest score.
+        // ---------------------------------------------------------------------
+        public void GetHighScores()
+        {
+            // Load high score data from PlayerPrefs.
+            string jsonString = PlayerPrefs.GetString(_HIGH_SCORE_TABLE);
+            _highScores       = JsonUtility.FromJson<HighScores>(jsonString);
+
+
+            #region .  Sample Data ??  ----------------------------------------.
+
+            //  If there's no HighScoreTable in PlayerPrefs, check to add some.
+            if ((_highScores == null) && (_loadDefaultValues))
+            {
+                Debug.Log("Initializing table with default values...");
+                AddHighScoreEntry(872931,  Random.Range(20, 75), "DAV");
+                AddHighScoreEntry(1000000, Random.Range(20, 75), "CMK");
+                AddHighScoreEntry(785123,  Random.Range(20, 75), "CAT");
+                AddHighScoreEntry(542024,  Random.Range(20, 75), "MAX");
+                AddHighScoreEntry(68245,   Random.Range(20, 75), "AAA");
+                AddHighScoreEntry(87639,   Random.Range(20, 75), "KFU");
+                AddHighScoreEntry(897621,  Random.Range(20, 75), "JOE");
+                AddHighScoreEntry(87406,   Random.Range(20, 75), "LDE");
+                AddHighScoreEntry(98765,   Random.Range(20, 75), "KYX");
+                AddHighScoreEntry(99887,   Random.Range(20, 75), "JNF");
+
+                // Reload.
+                jsonString  = PlayerPrefs.GetString(_HIGH_SCORE_TABLE);
+                _highScores = JsonUtility.FromJson<HighScores>(jsonString);
+            }
+            #endregion
+
+
+            // If there is no high score data yet, nothing else to do here.
+            if (_highScores == null)
+            {
+                _textEntryContainerValue    .text = "";
+                _textEntryTemplateValue     .text = "";
+                _textEntryTransformValue    .text = "";
+                _textEntryRectTransformValue.text = "";
+                _textAnchoredPositionValue  .text = "";
+                return;
+            }
+
+            #region .  Sort Descending By Score  ------------------------------.
+
+            // Check to sort the high entry list (descending by Score).
+            int count = _highScores.HighScoresList.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                for (int j = i + 1; j < count; j++)
+                {
+                    if (_highScores.HighScoresList[j].score > _highScores.HighScoresList[i].score)
+                    {
+                        // Swap.
+                        (_highScores.HighScoresList[j], _highScores.HighScoresList[i]) =
+                        (_highScores.HighScoresList[i], _highScores.HighScoresList[j]);
+                    }
+                }
+            }
+
+            BestScore   = _highScores.HighScoresList[0].score;
+            LowestScore = _highScores.HighScoresList[count - 1].score;
+
+            #endregion
+
+
+            #region .  Display High Scores List  -------------------------------.
+
+            // Check to sort the high entry list (descending by Score).
+            float templateHeight = 20f;
+
+            foreach (HighScoreEntry highScoreEntry in _highScores.HighScoresList)
+            {
+                Transform     entryTransform        = Instantiate(_entryTemplate, _entryContainer);
+                RectTransform entryRectTransform    = entryTransform.GetComponent<RectTransform>();
+                entryRectTransform.anchoredPosition = new Vector2(0, -templateHeight * _highScoresList.Count);
+
+                // Add it to the entries list.
+                _highScoresList.Add(entryTransform);
+
+                // Display these for debugging.
+                _textEntryContainerValue    .text = _entryContainer    .position.ToString();
+                _textEntryTemplateValue     .text = _entryTemplate     .position.ToString();
+                _textEntryTransformValue    .text =  entryTransform    .position.ToString();
+                _textEntryRectTransformValue.text =  entryRectTransform.position.ToString();
+                _textAnchoredPositionValue  .text =  entryRectTransform.anchoredPosition.ToString();
+
+                // Get references to the UI objects in the entry template.
+                Transform background  = entryTransform.Find("Image_BackgroundEntry");
+                Image     imageTrophy = entryTransform.Find("Image_Trophy"  ).GetComponent<Image>();
+                TMP_Text  textMoves   = entryTransform.Find("TMP_Text_Moves").GetComponent<TMP_Text>();
+                TMP_Text  textRank    = entryTransform.Find("TMP_Text_Rank" ).GetComponent<TMP_Text>();
+                TMP_Text  textScore   = entryTransform.Find("TMP_Text_Score").GetComponent<TMP_Text>();
+                TMP_Text  textName    = entryTransform.Find("TMP_Text_Name" ).GetComponent<TMP_Text>();
+
+                // Format the enrty based on its rank.
+                int rank = _highScoresList.Count;
+
+                string rankString;
+
+                switch (rank)
+                {
+                    case 1:
+                        rankString        = "1<sup>st</sup>";
+                        imageTrophy.color = _colorGold;
+                        textRank   .color = _colorGold;
+                        textMoves  .color = _colorGold;
+                        textScore  .color = _colorGold;
+                        textName   .color = _colorGold;
+                        break;
+
+                    case 2:
+                        rankString        = "2<sup>nd</sup>";
+                        imageTrophy.color = _colorSilver;
+                        textRank   .color = _colorSilver;
+                        textMoves  .color = _colorSilver;
+                        textScore  .color = _colorSilver;
+                        textName   .color = _colorSilver;
+                        break;
+
+                    case 3:
+                        rankString        = "3<sup>rd</sup>";
+                        imageTrophy.color = _colorBronze;
+                        textRank   .color = _colorBronze;
+                        textMoves  .color = _colorBronze;
+                        textScore  .color = _colorBronze;
+                        textName   .color = _colorBronze;
+                        break;
+
+                    default:
+                        rankString        = $"{rank}<sup>th</sup>";
+                        imageTrophy.gameObject.SetActive(false);
+                        break;
+                }
+
+                // Set background visible odds and evens, easier to read.
+                //background.gameObject.SetActive(rank % 2 == 1);
+
+                // Assign the entry values to their respective Text objects.
+                textRank .text = rankString;
+                textMoves.text = highScoreEntry.moves.ToString();
+                textScore.text = highScoreEntry.score.ToString();
+                textName .text = highScoreEntry.name;
+                            
+                // Show the entrypanel.
+                entryTransform.gameObject.SetActive(true);
+            }
+            #endregion
+
+            HighScoreCount = _highScoresList.Count;
+
+        }   // GetHighScores()
+        #endregion
+
+
+        #region .  Initialize()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  Initialize()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        public void Initialize()
+        {
+            _entryTemplate.gameObject.SetActive(false);
+
+            _highScoresList = new();
+
+            _colorGold   = GetColorFromString("FFD200");
+            _colorSilver = GetColorFromString("C6C6C6");
+            _colorBronze = GetColorFromString("B76F56");
+
+            // Load the high scores from PlayerPrefs and set these variables:
+            // (1) _highScores, (2) BestScore, (3) LowestScore
+            GetHighScores();
+            //DisplayHighScores();
+
+        }   // Initialize()
+        #endregion
+
+
+
+        // ---------------------------------------------------------------------
+        // Private Methods:
+        // ----------------
+        //   Awake()
+        //   CreateHighScoreEntry()
+        //   GetColorFromString()
+        //   Hex_To_Dec()
+        // ---------------------------------------------------------------------
+
+        #region .  Awake()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  Awake()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void Awake()
+        {
+            Initialize();
+
+        }   // Awake()
+        #endregion
+
+
+        #region .  CreateHighScoreEntry()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  CreateHighScoreEntry()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void CreateHighScoreEntry(HighScoreEntry highScoreEntry, Transform container, List<Transform> transformList)
+        {
+            float templateHeight     = 20f;
+            int   transformListCount = transformList.Count;
+
+
+            Transform     entryTransform     = Instantiate(_entryTemplate, container);
+            RectTransform entryRectTransform = entryTransform.GetComponent<RectTransform>();
+
+            Transform background  = entryTransform.Find("Image_BackgroundEntry");
+            Image     imageTrophy = entryTransform.Find("Image_Trophy"  ).GetComponent<Image>();
+            TMP_Text  textMoves   = entryTransform.Find("TMP_Text_Moves").GetComponent<TMP_Text>();
+            TMP_Text  textRank    = entryTransform.Find("TMP_Text_Rank" ).GetComponent<TMP_Text>();
+            TMP_Text  textScore   = entryTransform.Find("TMP_Text_Score").GetComponent<TMP_Text>();
+            TMP_Text  textName    = entryTransform.Find("TMP_Text_Name" ).GetComponent<TMP_Text>();
+
+            entryTransform.gameObject.SetActive(true);
+            entryRectTransform.anchoredPosition = new Vector2(0, -templateHeight * transformListCount);
+
+            int rank = transformListCount + 1;
+
+            string rankString;
+
+            switch (rank)
+            {
+                case 1:
+                    rankString        = "1st";
+                    textRank.color    = _colorGold;
+                    textScore.color   = _colorGold;
+                    textName.color    = _colorGold;
+                    imageTrophy.color = _colorGold;
+                    break;
+
+                case 2:
+                    rankString        = "2nd";
+                    imageTrophy.color = _colorSilver;
+                    break;
+
+                case 3:
+                    rankString        = "3rd";
+                    imageTrophy.color = _colorBronze;
+                    break;
+
+                default:
+                    rankString        = $"{rank}th";
+                    imageTrophy.gameObject.SetActive(false);
+                    break;
+            }
+
+            // Set background visible odds and evens, easier to read.
+            background.gameObject.SetActive(rank % 2 == 1);
+
+            // Display the entry.
+            textRank .text = rankString;
+            textScore.text = highScoreEntry.score.ToString();
+            textMoves.text = highScoreEntry.moves.ToString();
+            textName .text = highScoreEntry.name;
+
+            // Add it to the entries list.
+            transformList.Add(entryTransform);
+
+        }   // CreateHighScoreEntry()
+        #endregion
+
+
+        #region .  GetColorFromString()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  GetColorFromString()
+        //   Description..:  Get Color from Hex string, like FF00FFAA.
+        //   Parameters...:  string
+        //   Returns......:  Color
+        // ---------------------------------------------------------------------
+        // Get Color from Hex string FF00FFAA
+        private Color GetColorFromString(string color)
+        {
+            float red   = Hex_To_Dec(color.Substring(0, 2));
+            float green = Hex_To_Dec(color.Substring(2, 2));
+            float blue  = Hex_To_Dec(color.Substring(4, 2));
+            float alpha = 1f;
+
+            if (color.Length >= 8)
+            {
+                // Color string contains alpha.
+                alpha = Hex_To_Dec(color.Substring(6, 2));
+            }
+
+            return new Color(red, green, blue, alpha);
+
+        }   // GetColorFromString()
+        #endregion
+
+
+        #region .  Hex_To_Dec()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  Hex_To_Dec()
+        //   Description..:  Convert hex string yo a float.
+        //   Parameters...:  string
+        //   Returns......:  float
+        // ---------------------------------------------------------------------
+        private float Hex_To_Dec(string hex)
+        {
+            return Convert.ToInt32(hex, 16) / 255f;
+
+        }   // Hex_To_Dec()
+        #endregion
+
+
+    }   // class HighScoresManager
+
+}   // namespace Assets.Scenes.Game2048.Scripts

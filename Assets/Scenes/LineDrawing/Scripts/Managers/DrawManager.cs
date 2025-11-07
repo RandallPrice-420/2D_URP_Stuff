@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 
 namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
@@ -6,12 +7,12 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
     public class DrawManager : MonoBehaviour
     {
         // ---------------------------------------------------------------------
-        // Public Properties:
-        // ------------------
+        // Public Variables:
+        // -----------------
         //   RESOLUTION
         // ---------------------------------------------------------------------
 
-        #region .  Public Properties  .
+        #region .  Public Variables  .
 
         public const float RESOLUTION = 0.1f;
 
@@ -28,20 +29,21 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         #region .  Serialized Fields  .
 
         // Be sure to assign these in the Inspector.
-        [SerializeField] private Line _linePrefab;
+        [SerializeField] private Line  _linePrefab;
+        [SerializeField] private Image _background;
 
         #endregion
 
 
 
         // ---------------------------------------------------------------------
-        // Private Properties:
-        // -------------------
+        // Private Variables:
+        // ------------------
         //   _camera
         //   _currentLine
         // ---------------------------------------------------------------------
 
-        #region .  Private Properties  .
+        #region .  Private Variables  .
 
         private Camera _camera;
         private Line   _currentLine;
@@ -69,15 +71,31 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         // ---------------------------------------------------------------------
         private void ButtonResetClicked()
         {
+            ClearLines();
+
+        }   // ButtonResetClicked()
+        #endregion
+
+
+        #region .  ClearLines()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  ClearLines()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void ClearLines()
+        {
             // Find all Line objects in the scene and clear their lines.
             Line[] lines = FindObjectsOfType<Line>();
+
             foreach (Line line in lines)
             {
                 line.ClearLine();
                 Destroy(line.gameObject);
             }
 
-        }   // ButtonResetClicked()
+        }   // ClearLines()
         #endregion
 
 
@@ -121,6 +139,7 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         private void Start()
         {
             _camera = Camera.main;
+            _background.transform.SetAsFirstSibling();
 
         }   // Start()
         #endregion
@@ -135,10 +154,15 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         // ---------------------------------------------------------------------
         private void Update()
         {
+            // Ignore mouse click in the pointer is over a UI element.
+            if (Utils.IsMouseBlocked()) return;
+
             Vector2 mousePosition = _camera.ScreenToWorldPoint(Input.mousePosition);
 
             if (Input.GetMouseButtonDown(0))
             {
+                Utils.Check2DObjectClicked();
+
                 // This is the start of a new line.
                 _currentLine = Instantiate(_linePrefab, mousePosition, Quaternion.identity);
             }

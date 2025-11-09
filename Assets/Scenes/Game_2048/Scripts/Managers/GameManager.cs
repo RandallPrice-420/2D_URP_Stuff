@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
-using DG.Tweening;
 
 
 namespace Assets.Scenes.Game2048.Scripts
@@ -64,7 +64,7 @@ namespace Assets.Scenes.Game2048.Scripts
         //   OnBestScoreChanged
         //   OnGameOver
         //   OnGameStateChanged
-        //   OnMove
+        //   OnMoveChanged
         //   OnScoreChanged
         //   OnWinConditionChanged
         // ---------------------------------------------------------------------
@@ -74,7 +74,7 @@ namespace Assets.Scenes.Game2048.Scripts
         public static event Action<int>       OnBestScoreChanged    = delegate { };
         public static event Action<GameState> OnGameOver            = delegate { };
         public static event Action<GameState> OnGameStateChanged    = delegate { };
-        public static event Action<int>       OnMove                = delegate { };
+        public static event Action<int>       OnMoveChanged         = delegate { };
         public static event Action<int>       OnScoreChanged        = delegate { };
         public static event Action<int>       OnWinConditionChanged = delegate { };
 
@@ -131,9 +131,10 @@ namespace Assets.Scenes.Game2048.Scripts
         [SerializeField] private Node            _nodePrefab;
         [SerializeField] private GameObject      _panelGameOver;
         [SerializeField] private GameObject      _panelHighScores;
-        [SerializeField] private int             _playerNameLength = 10;
+        [SerializeField] private int             _playerNameLength = 5;
         [SerializeField] private float           _travelTime       = 0.5f;
         [SerializeField] private int             _winCondition     = 0;
+        [SerializeField] private TMP_Text        _textHowToPlay;
 
         #endregion
 
@@ -216,7 +217,7 @@ namespace Assets.Scenes.Game2048.Scripts
         {
             HighScoresManager.Instance.AddHighScoreEntry(Random.Range(1, 10000), Random.Range(30, 100), GetPlayerName());
             HighScoresManager.Instance.GetHighScores();
-            //HighScoresManager.Instance.DisplayHighScores();
+            HighScoresManager.Instance.DisplayHighScores();
 
         }   // ButtonAddScoreClicked()
         #endregion
@@ -398,7 +399,7 @@ namespace Assets.Scenes.Game2048.Scripts
             {
                 HighScoresManager.Instance.AddHighScoreEntry(_score, _moves, GetPlayerName());
                 HighScoresManager.Instance.GetHighScores();
-                //HighScoresManager.Instance.DisplayHighScores();
+                HighScoresManager.Instance.DisplayHighScores();
             }
             else
             {
@@ -406,11 +407,11 @@ namespace Assets.Scenes.Game2048.Scripts
             }
 
             // Did you beat the best score?
-            if (_score > _bestScore)
+            if (_score > HighScoresManager.Instance.BestScore)
             {
                 // Congratulations!
-                _bestScore = _score;
-                OnBestScoreChanged?.Invoke(_bestScore);
+                HighScoresManager.Instance.BestScore = _score;
+                OnBestScoreChanged?.Invoke(HighScoresManager.Instance.BestScore);
             }
 
         }   // CheckForHighScore()
@@ -523,12 +524,14 @@ namespace Assets.Scenes.Game2048.Scripts
             var board  = Instantiate(_boardPrefab, center, Quaternion.identity);
             board.size = new Vector2(_width, _height);
 
-            _bestScore   = HighScoresManager.Instance.BestScore;
-            _lowestScore = HighScoresManager.Instance.LowestScore;
-
-            OnBestScoreChanged?.Invoke(_bestScore);
-
             _camera.transform.position = new Vector3(center.x, center.y + 0.5f, -10);
+
+            _bestScore   = HighScoresManager.Instance.BestScore;
+            _lowestScore = HighScoresManager.Instance.BestScore;
+
+            OnMoveChanged     ?.Invoke(_moves);
+            OnScoreChanged    ?.Invoke(_score);
+            OnBestScoreChanged?.Invoke(HighScoresManager.Instance.BestScore);
 
             ChangeState(GameState.GenerateLevel);
 
@@ -669,6 +672,7 @@ namespace Assets.Scenes.Game2048.Scripts
             int width  = Screen.width;
 
             if (_winCondition == 0) _winCondition = 32;
+            _textHowToPlay.text = _textHowToPlay.text.Replace("%1", _winCondition.ToString());
 
             OnWinConditionChanged?.Invoke(_winCondition);
 
@@ -759,10 +763,10 @@ namespace Assets.Scenes.Game2048.Scripts
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow )) { OnMove?.Invoke(_moves++); ShiftBlocks(Vector2.left ); }
-            if (Input.GetKeyDown(KeyCode.RightArrow)) { OnMove?.Invoke(_moves++); ShiftBlocks(Vector2.right); }
-            if (Input.GetKeyDown(KeyCode.UpArrow   )) { OnMove?.Invoke(_moves++); ShiftBlocks(Vector2.up   ); }
-            if (Input.GetKeyDown(KeyCode.DownArrow))  { OnMove?.Invoke(_moves++); ShiftBlocks(Vector2.down ); }
+            if (Input.GetKeyDown(KeyCode.LeftArrow )) { OnMoveChanged?.Invoke(_moves++); ShiftBlocks(Vector2.left ); }
+            if (Input.GetKeyDown(KeyCode.RightArrow)) { OnMoveChanged?.Invoke(_moves++); ShiftBlocks(Vector2.right); }
+            if (Input.GetKeyDown(KeyCode.UpArrow   )) { OnMoveChanged?.Invoke(_moves++); ShiftBlocks(Vector2.up   ); }
+            if (Input.GetKeyDown(KeyCode.DownArrow))  { OnMoveChanged?.Invoke(_moves++); ShiftBlocks(Vector2.down ); }
 
         }   // Update()
         #endregion

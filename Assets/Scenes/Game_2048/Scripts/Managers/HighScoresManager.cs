@@ -106,7 +106,7 @@ namespace Assets.Scenes.Game2048.Scripts
         //   _colorSilver
         //   _colorBronze
         //   _highScores
-        //   _highScoresList
+        //   _highScoresListForDisplay
         //   _HIGH_SCORE_TABLE
         // ---------------------------------------------------------------------
 
@@ -117,7 +117,7 @@ namespace Assets.Scenes.Game2048.Scripts
         private Color           _colorBronze;
         private HighScores      _highScores;
 
-        private List<Transform> _highScoresList = new();
+        private List<Transform> _highScoresListForDisplay = new();
 
         private const string    _HIGH_SCORE_TABLE = "HighScoreTable";
 
@@ -138,33 +138,42 @@ namespace Assets.Scenes.Game2048.Scripts
         #region .  AddHighScoreEntry()  .
         // ---------------------------------------------------------------------
         //   Method.......:  AddHighScoreEntry()
-        //   Description..:  Add a new entry to the high scores list.
+        //   Description..:  Load the high scores data from PlayerPrefs into the
+        //                   _highScores list, and add a new entry to the list.
+        //                   The new _highScores list is saved to PlayerPrefs.
+        //                   This method does NOT display the high scores, that
+        //                   is done next in the DisplayHighScores() method.
         //   Parameters...:  int    : the player's score.
         //                   string : the player's name.
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
-        public void AddHighScoreEntry(int score, int moves, string name)
+        public void AddHighScoreEntry(int newScore, int newMoves, string newName)
         {
-            // Create HighScoreEntry.
-            HighScoreEntry highScoreEntry = new HighScoreEntry { score = score, moves = moves, name = name };
-
-            // Load saved HighScores.
+            // Load the saved HighScores.
             string jsonString = PlayerPrefs.GetString(_HIGH_SCORE_TABLE);
             _highScores       = JsonUtility.FromJson<HighScores>(jsonString);
 
+            // If there's no high scores in PlayerPrefs, initialize it.
             if (_highScores == null)
             {
-                // There's no stored table, initialize.
                 _highScores = new HighScores()
                 {
                     HighScoresList = new List<HighScoreEntry>()
                 };
             }
 
-            // Add new entry to HighScores.
+            // Create a new HighScoreEntry using the parameter values.
+            HighScoreEntry highScoreEntry = new()
+            {
+                score = newScore,
+                moves = newMoves,
+                name  = newName
+            };
+
+            // Add the new highScoreEntry to the _highScores list.
             _highScores.HighScoresList.Add(highScoreEntry);
 
-            // Save updated HighScores.
+            // Save the updated _highScores back in PlayerPrefs.
             jsonString = JsonUtility.ToJson(_highScores);
             PlayerPrefs.SetString(_HIGH_SCORE_TABLE, jsonString);
             PlayerPrefs.Save();
@@ -182,14 +191,18 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         public void ClearHighScores()
         {
+            // Delete the high scores from PlayerPrefs.
             PlayerPrefs.DeleteKey("BestScore");
             PlayerPrefs.DeleteKey(_HIGH_SCORE_TABLE);
-            Debug.Log($"PlayerPrefs key [{_HIGH_SCORE_TABLE}] and [BestScore] values deleted.");
 
+            print($"PlayerPrefs key [{_HIGH_SCORE_TABLE}] and [BestScore] values deleted.");
+
+            // The objects to clear will match thism target name.
             string           targetName      = "HighScoreEntryTemplate(Clone)"; // Replace with the name you're looking for
             GameObject[]     allObjects      = FindObjectsOfType<GameObject>();
             List<GameObject> matchingObjects = new();
 
+            // Find objects whose name matches the target name and add to the list.
             foreach (GameObject obj in allObjects)
             {
                 if (obj.name == targetName)
@@ -198,11 +211,12 @@ namespace Assets.Scenes.Game2048.Scripts
                 }
             }
 
-            Debug.Log($"Found {matchingObjects.Count} objects with the name '{targetName}'.");
+            print($"Found {matchingObjects.Count} objects with the name '{targetName}'.");
 
+            // Destroy them.
             foreach (GameObject gameObject in matchingObjects)
             {
-                Debug.Log($"Destroying {gameObject.name} object.");
+                print($"Destroying {gameObject.name} object.");
                 Destroy(gameObject);
             }
 
@@ -221,86 +235,85 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         public void DisplayHighScores()
         {
-            if (_highScores != null)
+            if (_highScores == null) return;
+
+            float templateHeight = 20f;
+
+            //foreach (HighScoreEntry highScoreEntry in _highScores.HighScoresList)
+            for (int i = 0; i < _highScores.HighScoresList.Count; i++)
             {
-                float templateHeight = 20f;
+                HighScoreEntry highScoreEntry = _highScores.HighScoresList[i];
 
-                foreach (HighScoreEntry highScoreEntry in _highScores.HighScoresList)
+                Transform     newEntry         = Instantiate(_entryTemplate, _entryContainer);
+                RectTransform newEntryPosition = newEntry.GetComponent<RectTransform>();
+
+                newEntryPosition.anchoredPosition = new Vector2(0, -templateHeight * i);
+
+                _textEntryContainerValue  .text = _entryContainer .position        .ToString();
+                _textEntryTemplateValue   .text = _entryTemplate  .position        .ToString();
+                _textEntryTransformValue  .text = newEntry        .position        .ToString();
+                _textAnchoredPositionValue.text = newEntryPosition.anchoredPosition.ToString();
+
+                // Get references to the UI objects in the entry template.
+                Transform background  = newEntry.Find("Image_BackgroundEntry");
+                Image     imageTrophy = newEntry.Find("Image_Trophy"  ).GetComponent<Image>();
+                TMP_Text  textMoves   = newEntry.Find("TMP_Text_Moves").GetComponent<TMP_Text>();
+                TMP_Text  textRank    = newEntry.Find("TMP_Text_Rank" ).GetComponent<TMP_Text>();
+                TMP_Text  textScore   = newEntry.Find("TMP_Text_Score").GetComponent<TMP_Text>();
+                TMP_Text  textName    = newEntry.Find("TMP_Text_Name" ).GetComponent<TMP_Text>();
+
+
+                string rankString;
+                int    rank = i + 1;
+
+                switch (rank)
                 {
-                    Transform     entryTransform     = Instantiate(_entryTemplate, _entryContainer);
-                    RectTransform entryRectTransform = entryTransform.GetComponent<RectTransform>();
+                    case 1:
+                        rankString        = "1<sup>st</sup>";
+                        imageTrophy.color = _colorGold;
+                        textRank   .color = _colorGold;
+                        textMoves  .color = _colorGold;
+                        textScore  .color = _colorGold;
+                        textName   .color = _colorGold;
+                        break;
 
-                    // Add it to the entries list.
-                    _highScoresList.Add(entryTransform);
+                    case 2:
+                        rankString        = "2<sup>nd</sup>";
+                        imageTrophy.color = _colorSilver;
+                        textRank   .color = _colorSilver;
+                        textMoves  .color = _colorSilver;
+                        textScore  .color = _colorSilver;
+                        textName   .color = _colorSilver;
+                        break;
 
-                    entryRectTransform.anchoredPosition = new Vector2(0, -templateHeight * _highScoresList.Count);
+                    case 3:
+                        rankString        = "3<sup>rd</sup>";
+                        imageTrophy.color = _colorBronze;
+                        textRank   .color = _colorBronze;
+                        textMoves  .color = _colorBronze;
+                        textScore  .color = _colorBronze;
+                        textName   .color = _colorBronze;
+                        break;
 
-                    _textEntryContainerValue      .text = _entryContainer.transform.position.ToString();
-                    _textEntryTemplateValue       .text = _entryTemplate .transform.position.ToString();
-                    _textEntryTransformValue .text = _entryTemplate .transform.position.ToString();
-
-                    // Get references to the UI objects in the entry template.
-                    Transform background  = entryTransform.Find("Image_BackgroundEntry");
-                    Image     imageTrophy = entryTransform.Find("Image_Trophy"  ).GetComponent<Image>();
-                    TMP_Text  textMoves   = entryTransform.Find("TMP_Text_Moves").GetComponent<TMP_Text>();
-                    TMP_Text  textRank    = entryTransform.Find("TMP_Text_Rank" ).GetComponent<TMP_Text>();
-                    TMP_Text  textScore   = entryTransform.Find("TMP_Text_Score").GetComponent<TMP_Text>();
-                    TMP_Text  textName    = entryTransform.Find("TMP_Text_Name" ).GetComponent<TMP_Text>();
-
-                    int rank = _highScoresList.Count;
-
-                    string rankString;
-
-                    switch (rank)
-                    {
-                        case 1:
-                            rankString        = "1<sup>st</sup>";
-                            imageTrophy.color = _colorGold;
-                            textRank   .color = _colorGold;
-                            textMoves  .color = _colorGold;
-                            textScore  .color = _colorGold;
-                            textName   .color = _colorGold;
-                            break;
-
-                        case 2:
-                            rankString        = "2<sup>nd</sup>";
-                            imageTrophy.color = _colorSilver;
-                            textRank   .color = _colorSilver;
-                            textMoves  .color = _colorSilver;
-                            textScore  .color = _colorSilver;
-                            textName   .color = _colorSilver;
-                            break;
-
-                        case 3:
-                            rankString        = "3<sup>rd</sup>";
-                            imageTrophy.color = _colorBronze;
-                            textRank   .color = _colorBronze;
-                            textMoves  .color = _colorBronze;
-                            textScore  .color = _colorBronze;
-                            textName   .color = _colorBronze;
-                            break;
-
-                        default:
-                            rankString        = $"{rank}<sup>th</sup>";
-                            imageTrophy.gameObject.SetActive(false);
-                            break;
-                    }
-
-                    // Set background visible odds and evens, easier to read.
-                    background.gameObject.SetActive(rank % 2 == 1);
-
-                    // Assign the entry values to their respective Text objects.
-                    textRank .text = rankString;
-                    textMoves.text = highScoreEntry.moves.ToString();
-                    textScore.text = highScoreEntry.score.ToString();
-                    textName .text = highScoreEntry.name;
-                            
-                    // Show the panel.
-                    entryTransform.gameObject.SetActive(true);
+                    default:
+                        rankString        = $"{rank}<sup>th</sup>";
+                        imageTrophy.gameObject.SetActive(false);
+                        break;
                 }
-            }
 
-            HighScoreCount = _highScoresList.Count;
+                // Set background visible odds and evens, easier to read.
+                //background.gameObject.SetActive(rank % 2 == 1);
+
+                // Assign the entry values to their respective Text objects.
+                textRank .text = rankString;
+                textMoves.text = highScoreEntry.moves.ToString();
+                textScore.text = highScoreEntry.score.ToString();
+                textName .text = highScoreEntry.name;
+                            
+                // Show the high score enttry.
+                newEntry.gameObject.SetActive(true);
+
+            }   // foreach (highScoreEntry...)
 
         }   // DisplayHighScores()
         #endregion
@@ -363,9 +376,9 @@ namespace Assets.Scenes.Game2048.Scripts
 
             #region .  Sort Descending By Score  ------------------------------.
 
-            // Check to sort the high entry list (descending by Score).
             int count = _highScores.HighScoresList.Count;
 
+            // Sort the high scores list (descending by Score).
             for (int i = 0; i < count; i++)
             {
                 for (int j = i + 1; j < count; j++)
@@ -378,97 +391,11 @@ namespace Assets.Scenes.Game2048.Scripts
                     }
                 }
             }
-
-            BestScore   = _highScores.HighScoresList[0].score;
-            LowestScore = _highScores.HighScoresList[count - 1].score;
-
             #endregion
 
-
-            #region .  Display High Scores List  -------------------------------.
-
-            // Check to sort the high entry list (descending by Score).
-            float templateHeight = 20f;
-
-            foreach (HighScoreEntry highScoreEntry in _highScores.HighScoresList)
-            {
-                Transform     entryTransform        = Instantiate(_entryTemplate, _entryContainer);
-                RectTransform entryRectTransform    = entryTransform.GetComponent<RectTransform>();
-                entryRectTransform.anchoredPosition = new Vector2(0, -templateHeight * _highScoresList.Count);
-
-                // Add it to the entries list.
-                _highScoresList.Add(entryTransform);
-
-                // Display these for debugging.
-                _textEntryContainerValue    .text = _entryContainer    .position.ToString();
-                _textEntryTemplateValue     .text = _entryTemplate     .position.ToString();
-                _textEntryTransformValue    .text =  entryTransform    .position.ToString();
-                _textEntryRectTransformValue.text =  entryRectTransform.position.ToString();
-                _textAnchoredPositionValue  .text =  entryRectTransform.anchoredPosition.ToString();
-
-                // Get references to the UI objects in the entry template.
-                Transform background  = entryTransform.Find("Image_BackgroundEntry");
-                Image     imageTrophy = entryTransform.Find("Image_Trophy"  ).GetComponent<Image>();
-                TMP_Text  textMoves   = entryTransform.Find("TMP_Text_Moves").GetComponent<TMP_Text>();
-                TMP_Text  textRank    = entryTransform.Find("TMP_Text_Rank" ).GetComponent<TMP_Text>();
-                TMP_Text  textScore   = entryTransform.Find("TMP_Text_Score").GetComponent<TMP_Text>();
-                TMP_Text  textName    = entryTransform.Find("TMP_Text_Name" ).GetComponent<TMP_Text>();
-
-                // Format the enrty based on its rank.
-                int rank = _highScoresList.Count;
-
-                string rankString;
-
-                switch (rank)
-                {
-                    case 1:
-                        rankString        = "1<sup>st</sup>";
-                        imageTrophy.color = _colorGold;
-                        textRank   .color = _colorGold;
-                        textMoves  .color = _colorGold;
-                        textScore  .color = _colorGold;
-                        textName   .color = _colorGold;
-                        break;
-
-                    case 2:
-                        rankString        = "2<sup>nd</sup>";
-                        imageTrophy.color = _colorSilver;
-                        textRank   .color = _colorSilver;
-                        textMoves  .color = _colorSilver;
-                        textScore  .color = _colorSilver;
-                        textName   .color = _colorSilver;
-                        break;
-
-                    case 3:
-                        rankString        = "3<sup>rd</sup>";
-                        imageTrophy.color = _colorBronze;
-                        textRank   .color = _colorBronze;
-                        textMoves  .color = _colorBronze;
-                        textScore  .color = _colorBronze;
-                        textName   .color = _colorBronze;
-                        break;
-
-                    default:
-                        rankString        = $"{rank}<sup>th</sup>";
-                        imageTrophy.gameObject.SetActive(false);
-                        break;
-                }
-
-                // Set background visible odds and evens, easier to read.
-                //background.gameObject.SetActive(rank % 2 == 1);
-
-                // Assign the entry values to their respective Text objects.
-                textRank .text = rankString;
-                textMoves.text = highScoreEntry.moves.ToString();
-                textScore.text = highScoreEntry.score.ToString();
-                textName .text = highScoreEntry.name;
-                            
-                // Show the entrypanel.
-                entryTransform.gameObject.SetActive(true);
-            }
-            #endregion
-
-            HighScoreCount = _highScoresList.Count;
+            BestScore      = _highScores.HighScoresList[0].score;
+            LowestScore    = _highScores.HighScoresList[count - 1].score;
+            HighScoreCount = _highScores.HighScoresList.Count;
 
         }   // GetHighScores()
         #endregion
@@ -485,7 +412,7 @@ namespace Assets.Scenes.Game2048.Scripts
         {
             _entryTemplate.gameObject.SetActive(false);
 
-            _highScoresList = new();
+            _highScoresListForDisplay = new();
 
             _colorGold   = GetColorFromString("FFD200");
             _colorSilver = GetColorFromString("C6C6C6");
@@ -494,7 +421,7 @@ namespace Assets.Scenes.Game2048.Scripts
             // Load the high scores from PlayerPrefs and set these variables:
             // (1) _highScores, (2) BestScore, (3) LowestScore
             GetHighScores();
-            //DisplayHighScores();
+            DisplayHighScores();
 
         }   // Initialize()
         #endregion
@@ -539,7 +466,7 @@ namespace Assets.Scenes.Game2048.Scripts
 
 
             Transform     entryTransform     = Instantiate(_entryTemplate, container);
-            RectTransform entryRectTransform = entryTransform.GetComponent<RectTransform>();
+            RectTransform newEntryPosition = entryTransform.GetComponent<RectTransform>();
 
             Transform background  = entryTransform.Find("Image_BackgroundEntry");
             Image     imageTrophy = entryTransform.Find("Image_Trophy"  ).GetComponent<Image>();
@@ -549,7 +476,7 @@ namespace Assets.Scenes.Game2048.Scripts
             TMP_Text  textName    = entryTransform.Find("TMP_Text_Name" ).GetComponent<TMP_Text>();
 
             entryTransform.gameObject.SetActive(true);
-            entryRectTransform.anchoredPosition = new Vector2(0, -templateHeight * transformListCount);
+            newEntryPosition.anchoredPosition = new Vector2(0, -templateHeight * transformListCount);
 
             int rank = transformListCount + 1;
 

@@ -38,6 +38,8 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         //   _textMousePosition
         //   _toggleAutomaticMode
         //   _toggleFloodMode
+        //   _waitTimeMin
+        //   _waitTimeMax
         // ---------------------------------------------------------------------
 
         #region .  Serialized Fields  .
@@ -51,6 +53,9 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         [SerializeField] private Text   _textMousePosition;
         [SerializeField] private Toggle _toggleAutomaticMode;
         [SerializeField] private Toggle _toggleFloodMode;
+
+        [SerializeField] [Range(0.0f, 0.5f)]private float _waitTimeMin;
+        [SerializeField] [Range(0.5f, 1.0f)]private float _waitTimeMax;
 
         #endregion
 
@@ -156,7 +161,7 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         // ---------------------------------------------------------------------
         private float GetRandomWaitTime()
         {
-            float waitTime = Random.Range(0.1f, 2.0f);
+            float waitTime = Random.Range(_waitTimeMin, _waitTimeMax);
 
             return waitTime;
 
@@ -331,10 +336,6 @@ namespace Assets.Scenes.MainMenu.Scripts.LineDrawing.Managers
         private void Update()
         {
             Vector3 spawnPosition;
-            //Vector3 spawnPosition = Utils.RestrictValue(Input.mousePosition, _minOffsetX, _maxOffsetX, _minOffsetY, _maxOffsetY);
-
-            //if (spawnPosition.x < _minOffsetX) spawnPosition.x = _minOffsetX;
-            //if (spawnPosition.x > _maxOffsetX) spawnPosition.x = _maxOffsetX;
 
             if (_toggleAutomaticMode.isOn)
             {

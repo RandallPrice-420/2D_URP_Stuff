@@ -81,7 +81,7 @@ namespace Assets.Scenes.Game2048.Scripts
             GameManager.OnGameOver            -= GameOver;
             GameManager.OnBestScoreChanged    -= UpdateBestText;
             GameManager.OnGameStateChanged    -= UpdateGameStateText;
-            GameManager.OnMove                -= UpdateMovesText;
+            GameManager.OnMoveChanged         -= UpdateMovesText;
             GameManager.OnScoreChanged        -= UpdateScoreText;
             GameManager.OnWinConditionChanged -= UpdateWinConditionText;
 
@@ -101,7 +101,7 @@ namespace Assets.Scenes.Game2048.Scripts
             GameManager.OnGameOver            += GameOver;
             GameManager.OnBestScoreChanged    += UpdateBestText;
             GameManager.OnGameStateChanged    += UpdateGameStateText;
-            GameManager.OnMove                += UpdateMovesText;
+            GameManager.OnMoveChanged         += UpdateMovesText;
             GameManager.OnScoreChanged        += UpdateScoreText;
             GameManager.OnWinConditionChanged += UpdateWinConditionText;
 

@@ -3048,6 +3048,8 @@ MonoBehaviour:
   _textMousePosition: {fileID: 62546508}
   _toggleAutomaticMode: {fileID: 1402535566}
   _toggleFloodMode: {fileID: 223442236}
+  _waitTimeMin: 0
+  _waitTimeMax: 0.5
 --- !u!1 &1389319050168852475
 GameObject:
   m_ObjectHideFlags: 0

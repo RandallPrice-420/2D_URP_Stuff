@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 
-namespace Assets.Scenes.Game2048.Scripts
+namespace Assets.Scenes.Game2048.Scripts.Managers
 {
     public class HighScoresManager : Singleton<HighScoresManager>
     {
@@ -40,10 +40,12 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         //   Class........:  HighScores
         //   Description..:  
-        //   Properties...:  List<HighScoreEntry> HighScoresList
+        //   Properties...:  int BestScore
+        //                   List<HighScoreEntry> HighScoresList
         // ---------------------------------------------------------------------
         private class HighScores
         {
+            public int                  BestScore;
             public List<HighScoreEntry> HighScoresList;
 
         }   // class HighScores
@@ -129,7 +131,9 @@ namespace Assets.Scenes.Game2048.Scripts
         // Public Methods:
         // ---------------
         //   AddHighScoreEntry()
-        //   ClearHighScores()
+        //   ClearHighScoresDisplay()
+        //   CheckForHighScore()
+        //   DeleteHighScoresFromPlayerPrefs()
         //   DisplayHighScores()
         //   GetHighScores()
         //   Initialize()
@@ -170,8 +174,9 @@ namespace Assets.Scenes.Game2048.Scripts
                 name  = newName
             };
 
-            // Add the new highScoreEntry to the _highScores list.
+            // Add the new highScoreEntry to the _highScores list and sort the list.
             _highScores.HighScoresList.Add(highScoreEntry);
+            SortHighScores();
 
             // Save the updated _highScores back in PlayerPrefs.
             jsonString = JsonUtility.ToJson(_highScores);
@@ -182,21 +187,15 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
-        #region .  ClearHighScores()  .
+        #region .  ClearHighScoresDisplay()  .
         // ---------------------------------------------------------------------
-        //   Method.......:  ClearHighScores()
+        //   Method.......:  ClearHighScoresDisplay()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
-        public void ClearHighScores()
+        public void ClearHighScoresDisplay()
         {
-            // Delete the high scores from PlayerPrefs.
-            PlayerPrefs.DeleteKey("BestScore");
-            PlayerPrefs.DeleteKey(_HIGH_SCORE_TABLE);
-
-            print($"PlayerPrefs key [{_HIGH_SCORE_TABLE}] and [BestScore] values deleted.");
-
             // The objects to clear will match thism target name.
             string           targetName      = "HighScoreEntryTemplate(Clone)"; // Replace with the name you're looking for
             GameObject[]     allObjects      = FindObjectsOfType<GameObject>();
@@ -211,18 +210,103 @@ namespace Assets.Scenes.Game2048.Scripts
                 }
             }
 
-            print($"Found {matchingObjects.Count} objects with the name '{targetName}'.");
+            //Debug.Log($"Found {matchingObjects.Count} objects with the name '{targetName}'.");
 
             // Destroy them.
             foreach (GameObject gameObject in matchingObjects)
             {
-                print($"Destroying {gameObject.name} object.");
+                //pDebug.Log($"Destroying {gameObject.name} object.");
                 Destroy(gameObject);
             }
 
-            Initialize();
+        }   // ClearHighScoresDisplay()
+        #endregion
 
-        }   // ClearHighScores()
+
+        #region .  CheckForHighScore()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  CheckForHighScore()
+        //   Description..:  Check if the score earned a spot in the HighScores
+        //                   list.  The list only holds the top 10 scores so to
+        //                   add this score it must be greater than the lowest
+        //                   score.  Also, check if the score is the new best!
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        public void CheckForHighScore(int score, int moves)
+        {
+            #region .  Old Code  .
+            //bool newHighScore = false;
+
+            //if (_highScores == null)
+            //{
+            //    newHighScore = true;
+            //}
+            //else
+            //{
+            //    for (int i = 0; i < HighScoreCount; i++)
+            //    {
+            //        HighScoreEntry highScoreEntry = _highScores.HighScoresList[i];
+            //        if (score > highScoreEntry.score)
+            //        {
+            //            newHighScore = true;
+            //        }
+            //    }
+            //}
+
+            //if (newHighScore)
+            //{
+            //    // New high score!
+            //    AddHighScoreEntry(score, moves, GetPlayerName(5));
+            //    GetHighScores();
+            //    DisplayHighScores();
+            //}
+
+            //if (HighScoreCount < MaximumEntries)
+            //{
+            //    AddHighScoreEntry(score, moves, GetPlayerName(5));
+            //    GetHighScores();
+            //    DisplayHighScores();
+            //}
+            //else
+            //{
+            //    Debug.Log($"Cannot add a new entry, already reached the maximum of {MaximumEntries}");
+            //}
+            #endregion
+
+            // New high score!
+            AddHighScoreEntry(score, moves, GetPlayerName(5));
+            GetHighScores();
+            DisplayHighScores();
+
+            // Did the player beat the best score?
+            if (score > BestScore)
+            {
+                // Congratulations!
+                BestScore = score;
+                EventManager.RaiseOnBestScoreChanged(BestScore);
+            }
+
+        }   // CheckForHighScore()
+        #endregion
+
+
+        #region .  DeleteHighScoresFromPlayerPrefs()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  DeleteHighScoresFromPlayerPrefs()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        public void DeleteHighScoresFromPlayerPrefs()
+        {
+            // Delete the high scores from PlayerPrefs.
+            PlayerPrefs.DeleteKey("BestScore");
+            PlayerPrefs.DeleteKey(_HIGH_SCORE_TABLE);
+
+            Debug.Log($"PlayerPrefs key [{_HIGH_SCORE_TABLE}] and [BestScore] values deleted.");
+
+        }   // DeleteHighScoresFromPlayerPrefs()
         #endregion
 
 
@@ -237,11 +321,16 @@ namespace Assets.Scenes.Game2048.Scripts
         {
             if (_highScores == null) return;
 
-            float templateHeight = 20f;
+            ClearHighScoresDisplay();
 
-            //foreach (HighScoreEntry highScoreEntry in _highScores.HighScoresList)
+            int    rank;
+            string rankString;
+            float  templateHeight = 20f;
+
             for (int i = 0; i < _highScores.HighScoresList.Count; i++)
             {
+                if (i >= MaximumEntries) break;
+
                 HighScoreEntry highScoreEntry = _highScores.HighScoresList[i];
 
                 Transform     newEntry         = Instantiate(_entryTemplate, _entryContainer);
@@ -262,9 +351,7 @@ namespace Assets.Scenes.Game2048.Scripts
                 TMP_Text  textScore   = newEntry.Find("TMP_Text_Score").GetComponent<TMP_Text>();
                 TMP_Text  textName    = newEntry.Find("TMP_Text_Name" ).GetComponent<TMP_Text>();
 
-
-                string rankString;
-                int    rank = i + 1;
+                rank = i + 1;
 
                 switch (rank)
                 {
@@ -302,7 +389,7 @@ namespace Assets.Scenes.Game2048.Scripts
                 }
 
                 // Set background visible odds and evens, easier to read.
-                //background.gameObject.SetActive(rank % 2 == 1);
+                background.gameObject.SetActive(rank % 2 == 1);
 
                 // Assign the entry values to their respective Text objects.
                 textRank .text = rankString;
@@ -374,30 +461,57 @@ namespace Assets.Scenes.Game2048.Scripts
                 return;
             }
 
-            #region .  Sort Descending By Score  ------------------------------.
-
-            int count = _highScores.HighScoresList.Count;
-
-            // Sort the high scores list (descending by Score).
-            for (int i = 0; i < count; i++)
-            {
-                for (int j = i + 1; j < count; j++)
-                {
-                    if (_highScores.HighScoresList[j].score > _highScores.HighScoresList[i].score)
-                    {
-                        // Swap.
-                        (_highScores.HighScoresList[j], _highScores.HighScoresList[i]) =
-                        (_highScores.HighScoresList[i], _highScores.HighScoresList[j]);
-                    }
-                }
-            }
-            #endregion
+            SortHighScores();
 
             BestScore      = _highScores.HighScoresList[0].score;
-            LowestScore    = _highScores.HighScoresList[count - 1].score;
+            LowestScore    = _highScores.HighScoresList[_highScores.HighScoresList.Count - 1].score;
             HighScoreCount = _highScores.HighScoresList.Count;
 
+            EventManager.RaiseOnBestScoreChanged(BestScore);
+
         }   // GetHighScores()
+        #endregion
+
+
+        #region .  GetPlayerName()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  GetPlayerName()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  string
+        // ---------------------------------------------------------------------
+        public string GetPlayerName(int length)
+        {
+            string name = GetRandomString(length);
+            //string name = GetRandomString(_playerNameLength);
+
+            return name;
+
+        }   // GetPlayerName()
+        #endregion
+
+
+        #region .  GetRandomString()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  GetRandomString()
+        //   Description..:  
+        //   Parameters...:  string
+        //                   int
+        //   Returns......:  string
+        // ---------------------------------------------------------------------
+        private string GetRandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()<>?.";
+            char[] result = new char[length];
+
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = chars[Random.Range(0, chars.Length)];
+            }
+
+            return new string(result);
+
+        }   // GetRandomString()
         #endregion
 
 
@@ -418,7 +532,7 @@ namespace Assets.Scenes.Game2048.Scripts
             _colorSilver = GetColorFromString("C6C6C6");
             _colorBronze = GetColorFromString("B76F56");
 
-            // Load the high scores from PlayerPrefs and set these variables:
+            // Load the high scores from PlayerPrefs and get these variables:
             // (1) _highScores, (2) BestScore, (3) LowestScore
             GetHighScores();
             DisplayHighScores();
@@ -431,26 +545,12 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         // Private Methods:
         // ----------------
-        //   Awake()
         //   CreateHighScoreEntry()
         //   GetColorFromString()
         //   Hex_To_Dec()
+        //   SortHighScores()
+        //   Start()
         // ---------------------------------------------------------------------
-
-        #region .  Awake()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  Awake()
-        //   Description..:  
-        //   Parameters...:  None
-        //   Returns......:  Nothing
-        // ---------------------------------------------------------------------
-        private void Awake()
-        {
-            Initialize();
-
-        }   // Awake()
-        #endregion
-
 
         #region .  CreateHighScoreEntry()  .
         // ---------------------------------------------------------------------
@@ -563,6 +663,49 @@ namespace Assets.Scenes.Game2048.Scripts
             return Convert.ToInt32(hex, 16) / 255f;
 
         }   // Hex_To_Dec()
+        #endregion
+
+
+        #region .  SortHighScores()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  SortHighScores()
+        //   Description..:  Sort high scores descending by Score.
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void SortHighScores()
+        {
+            int count = _highScores.HighScoresList.Count;
+
+            // Sort the high scores list (descending by Score).
+            for (int i = 0; i < count; i++)
+            {
+                for (int j = i + 1; j < count; j++)
+                {
+                    if (_highScores.HighScoresList[j].score > _highScores.HighScoresList[i].score)
+                    {
+                        // Swap.
+                        (_highScores.HighScoresList[j], _highScores.HighScoresList[i]) =
+                        (_highScores.HighScoresList[i], _highScores.HighScoresList[j]);
+                    }
+                }
+            }
+        }   // SortHighScores
+        #endregion
+
+
+        #region .  Start()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  Start()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void Start()
+        {
+            Initialize();
+
+        }   // Start()
         #endregion
 
 

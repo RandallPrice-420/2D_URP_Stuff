@@ -208,7 +208,7 @@ GameObject:
   m_Component:
   - component: {fileID: 39755877}
   m_Layer: 5
-  m_Name: Values_Container
+  m_Name: Debug_Values_Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2293,6 +2293,66 @@ MonoBehaviour:
   m_ChildScaleWidth: 1
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &535508101
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 535508102}
+  - component: {fileID: 535508103}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &535508102
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535508101}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 769367184}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &535508103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535508101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fd3be283138bb341833b9a86d852b0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Audio: {fileID: 915800732}
+  SoundAudioClips:
+  - sound: 0
+    audioClip: {fileID: 8300000, guid: 2ade8f6f53f45f341a4a02be7e1b20b2, type: 3}
+  - sound: 1
+    audioClip: {fileID: 8300000, guid: 145543a192929e94ebeac9b1d7d21ced, type: 3}
+  - sound: 2
+    audioClip: {fileID: 8300000, guid: 89cc1b27952f3604dae6ca3ae984f5e5, type: 3}
+  - sound: 3
+    audioClip: {fileID: 8300000, guid: 9e1bd0f379ad8494bac4f5c32a9757d6, type: 3}
+  - sound: 4
+    audioClip: {fileID: 8300000, guid: 5ac48b70217255a42ad9e5750d6e1db5, type: 3}
+  - sound: 5
+    audioClip: {fileID: 8300000, guid: df4f3f78bbdf3b44fa65e7c9975cf887, type: 3}
+  - sound: 6
+    audioClip: {fileID: 8300000, guid: 4239095f1e01e1b4ea058503b69a18f4, type: 3}
 --- !u!1 &537548622
 GameObject:
   m_ObjectHideFlags: 0
@@ -3800,6 +3860,7 @@ Transform:
   - {fileID: 1451269449}
   - {fileID: 949596588}
   - {fileID: 1643639301}
+  - {fileID: 535508102}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &806542664
@@ -3859,7 +3920,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 12345
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1ea510b67d96bd9499d716a153de7e2f, type: 2}
   m_sharedMaterial: {fileID: 5242118198494097922, guid: 1ea510b67d96bd9499d716a153de7e2f, type: 2}
@@ -4194,6 +4255,7 @@ GameObject:
   - component: {fileID: 915800731}
   - component: {fileID: 915800730}
   - component: {fileID: 915800729}
+  - component: {fileID: 915800732}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -4275,6 +4337,102 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &915800732
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 915800728}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &940304908
 GameObject:
   m_ObjectHideFlags: 0
@@ -6546,10 +6704,11 @@ MonoBehaviour:
   _nodePrefab: {fileID: 3296638485029042766, guid: e0071a1325702084b8e91dba1ddbac4b, type: 3}
   _panelGameOver: {fileID: 999049410}
   _panelHighScores: {fileID: 811938528}
+  _playerName: 
+  _textHowToPlay: {fileID: 126242474}
   _playerNameLength: 4
   _travelTime: 0.2
-  _winCondition: 64
-  _textHowToPlay: {fileID: 126242474}
+  _winAmount: 64
 --- !u!1 &1496949525
 GameObject:
   m_ObjectHideFlags: 0
@@ -7519,6 +7678,7 @@ MonoBehaviour:
   _textBestValue: {fileID: 146984425}
   _textGameOverLabel: {fileID: 2071372763}
   _textGameStateLabel: {fileID: 1154091847}
+  _textHowToPlay: {fileID: 126242474}
   _textMovesValue: {fileID: 1824672440}
   _textScoreValue: {fileID: 613058292}
   _textWinConditionValue: {fileID: 806542666}

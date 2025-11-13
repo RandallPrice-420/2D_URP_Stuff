@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
@@ -8,7 +7,7 @@ using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 
-namespace Assets.Scenes.Game2048.Scripts
+namespace Assets.Scenes.Game2048.Scripts.Managers
 {
     // -------------------------------------------------------------------------
     // Public Structs:
@@ -35,6 +34,7 @@ namespace Assets.Scenes.Game2048.Scripts
     // Public Enums:
     // -------------
     //   GameState
+    //   WinCondition
     // -------------------------------------------------------------------------
 
     #region .  Public Enums  .
@@ -50,6 +50,20 @@ namespace Assets.Scenes.Game2048.Scripts
         LoseGame,
         WinGame,
         Quit
+    }
+
+    [System.Serializable]
+    public enum WinCondition
+    {
+        None    = 0,
+        Win16   = 16,
+        Win32   = 32,
+        Win64   = 64,
+        Win128  = 128,
+        Win256  = 256,
+        Win512  = 512,
+        Win1024 = 1024,
+        Win2048 = 2048
     }
 
     #endregion
@@ -71,12 +85,56 @@ namespace Assets.Scenes.Game2048.Scripts
 
         #region .  Public Events  .
 
-        public static event Action<int>       OnBestScoreChanged    = delegate { };
-        public static event Action<GameState> OnGameOver            = delegate { };
-        public static event Action<GameState> OnGameStateChanged    = delegate { };
-        public static event Action<int>       OnMoveChanged         = delegate { };
-        public static event Action<int>       OnScoreChanged        = delegate { };
-        public static event Action<int>       OnWinConditionChanged = delegate { };
+        //public static event Action<int>       OnBestScoreChanged    = delegate { };
+        //public static event Action<GameState> OnGameOver            = delegate { };
+        //public static event Action<GameState> OnGameStateChanged    = delegate { };
+        //public static event Action<int>       OnMoveChanged         = delegate { };
+        //public static event Action<int>       OnScoreChanged        = delegate { };
+        //public static event Action<int>       OnWinConditionChanged = delegate { };
+
+        #endregion
+
+
+
+        // ---------------------------------------------------------------------
+        // Public Properties:
+        // ------------------
+        //   BestScore
+        //   Moves
+        //   Score
+        // ---------------------------------------------------------------------
+
+        #region .  Public Properties  .
+
+        public int BestScore
+        {
+            get { return _bestScore; }
+            set
+            {
+                _bestScore = value;
+                EventManager.RaiseOnBestScoreChanged(_bestScore);
+            }
+        }
+
+        public int Moves
+        {
+            get { return _moves; }
+            set
+            {
+                _moves = value;
+                EventManager.RaiseOnMovesChanged(_moves);
+            }
+        }
+
+        public int Score
+        {
+            get { return _score; }
+            set
+            {
+                _score = value;
+                EventManager.RaiseOnScoreChanged(_score);
+            }
+        }
 
         #endregion
 
@@ -115,9 +173,12 @@ namespace Assets.Scenes.Game2048.Scripts
         //   _nodePrefab
         //   _panelGameOver
         //   _panelHighScores
+        //   _playerName
+        //   _textHowToPlay
+        //
         //   _playerNameLength
         //   _travelTime
-        //   _winCondition
+        //   _winAmount
         // ---------------------------------------------------------------------
 
         #region .  Serialized Fields  .
@@ -131,10 +192,12 @@ namespace Assets.Scenes.Game2048.Scripts
         [SerializeField] private Node            _nodePrefab;
         [SerializeField] private GameObject      _panelGameOver;
         [SerializeField] private GameObject      _panelHighScores;
+        [SerializeField] private string          _playerName;
+        [SerializeField] private TMP_Text        _textHowToPlay;
+
         [SerializeField] private int             _playerNameLength = 5;
         [SerializeField] private float           _travelTime       = 0.5f;
-        [SerializeField] private int             _winCondition     = 0;
-        [SerializeField] private TMP_Text        _textHowToPlay;
+        [SerializeField] private WinCondition    _winAmount        = WinCondition.Win64;
 
         #endregion
 
@@ -163,6 +226,7 @@ namespace Assets.Scenes.Game2048.Scripts
         private int         _moves;
         private int         _round;
         private int         _score;
+        //private int         _winAmount;
 
         #endregion
 
@@ -192,6 +256,7 @@ namespace Assets.Scenes.Game2048.Scripts
             return _blockTypes[i];
 
         }   // GetBlockTypeByValue()
+
         #endregion
 
 
@@ -215,7 +280,10 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         public void ButtonAddScoreClicked()
         {
-            HighScoresManager.Instance.AddHighScoreEntry(Random.Range(1, 10000), Random.Range(30, 100), GetPlayerName());
+            HighScoresManager.Instance.AddHighScoreEntry(Random.Range( 1, 10000),
+                                                         Random.Range(30,   100),
+                                                         HighScoresManager.Instance.GetPlayerName(_playerNameLength));
+
             HighScoresManager.Instance.GetHighScores();
             HighScoresManager.Instance.DisplayHighScores();
 
@@ -247,7 +315,7 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         public void ButtonClearClicked()
         {
-            HighScoresManager.Instance.ClearHighScores();
+            HighScoresManager.Instance.ClearHighScoresDisplay();
 
         }   // ButtonClearClicked()
         #endregion
@@ -317,7 +385,6 @@ namespace Assets.Scenes.Game2048.Scripts
         // Private Methods:
         // ----------------
         //   ChangeState()
-        //   CheckForHighScore()
         //   GenerateLevel()
         //   GetNodeAtPosition()
         //   GetPlayerName()
@@ -349,14 +416,17 @@ namespace Assets.Scenes.Game2048.Scripts
             {
                 case GameState.Initialize:
                     Initialize();
+                    ChangeState(GameState.GenerateLevel);
                     break;
 
                 case GameState.GenerateLevel:
                     GenerateLevel();
+                    ChangeState(GameState.SpawnBlocks);
                     break;
 
                 case GameState.SpawnBlocks:
-                    SpawnBlocks((_round++ == 0) ? 2 : 1);
+                    GameState state = SpawnBlocks((_round++ == 0) ? 2 : 1);
+                    ChangeState(state);
                     break;
 
                 case GameState.WaitingInput:
@@ -377,44 +447,9 @@ namespace Assets.Scenes.Game2048.Scripts
                     break;
             }
 
-            OnGameStateChanged?.Invoke(newState);
+            EventManager.RaiseOnGameStateChanged(newState);
 
         }   // ChangeState()
-        #endregion
-
-
-        #region .  CheckForHighScore()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  CheckForHighScore()
-        //   Description..:  Check if the score earned a spot in the HighScores
-        //                   list.  The list only holds the top 10 scores so to
-        //                   add this score it must be greater than the lowest
-        //                   score.  Also, check if the score is the new best!
-        //   Parameters...:  None
-        //   Returns......:  Nothing
-        // ---------------------------------------------------------------------
-        public void CheckForHighScore()
-        {
-            if (HighScoresManager.Instance.HighScoreCount < HighScoresManager.Instance.MaximumEntries)
-            {
-                HighScoresManager.Instance.AddHighScoreEntry(_score, _moves, GetPlayerName());
-                HighScoresManager.Instance.GetHighScores();
-                HighScoresManager.Instance.DisplayHighScores();
-            }
-            else
-            {
-                print($"Cannot add a new entry, already reached the maximum of {HighScoresManager.Instance.MaximumEntries}");
-            }
-
-            // Did you beat the best score?
-            if (_score > HighScoresManager.Instance.BestScore)
-            {
-                // Congratulations!
-                HighScoresManager.Instance.BestScore = _score;
-                OnBestScoreChanged?.Invoke(HighScoresManager.Instance.BestScore);
-            }
-
-        }   // CheckForHighScore()
         #endregion
 
 
@@ -439,7 +474,7 @@ namespace Assets.Scenes.Game2048.Scripts
                 }
             }
 
-            ChangeState(GameState.SpawnBlocks);
+            //ChangeState(GameState.SpawnBlocks);
 
         }   // GenerateLevel()
         #endregion
@@ -463,43 +498,43 @@ namespace Assets.Scenes.Game2048.Scripts
 
 
         #region .  GetPlayerName()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  GetPlayerName()
-        //   Description..:  
-        //   Parameters...:  None
-        //   Returns......:  string
-        // ---------------------------------------------------------------------
-        private string GetPlayerName()
-        {
-            string name = GetRandomString(_playerNameLength);
+        //// ---------------------------------------------------------------------
+        ////   Method.......:  GetPlayerName()
+        ////   Description..:  
+        ////   Parameters...:  None
+        ////   Returns......:  string
+        //// ---------------------------------------------------------------------
+        //private string GetPlayerName()
+        //{
+        //    string name = GetRandomString(_playerNameLength);
 
-            return name;
+        //    return name;
 
-        }   // GetPlayerName()
+        //}   // GetPlayerName()
         #endregion
 
 
         #region .  GetRandomString()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  GetRandomString()
-        //   Description..:  
-        //   Parameters...:  string
-        //                   int
-        //   Returns......:  string
-        // ---------------------------------------------------------------------
-        private string GetRandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()<>?.";
-            char[] result = new char[length];
+        //// ---------------------------------------------------------------------
+        ////   Method.......:  GetRandomString()
+        ////   Description..:  
+        ////   Parameters...:  string
+        ////                   int
+        ////   Returns......:  string
+        //// ---------------------------------------------------------------------
+        //private string GetRandomString(int length)
+        //{
+        //    const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()<>?.";
+        //    char[] result = new char[length];
 
-            for (int i = 0; i < length; i++)
-            {
-                result[i] = chars[Random.Range(0, chars.Length)];
-            }
+        //    for (int i = 0; i < length; i++)
+        //    {
+        //        result[i] = chars[Random.Range(0, chars.Length)];
+        //    }
 
-            return new string(result);
+        //    return new string(result);
 
-        }   // GetRandomString()
+        //}   // GetRandomString()
         #endregion
 
 
@@ -516,9 +551,10 @@ namespace Assets.Scenes.Game2048.Scripts
 
             _blocks = new List<Block>();
             _nodes  = new List<Node>();
-            _moves  = 0;
             _round  = 0;
-            _score  = 0;
+
+            this.Moves = 0;
+            this.Score = 0;
 
             var center = new Vector2((float)(_width / 2f) - 0.5f, (float)(_height / 2f) - 0.5f);
             var board  = Instantiate(_boardPrefab, center, Quaternion.identity);
@@ -526,14 +562,9 @@ namespace Assets.Scenes.Game2048.Scripts
 
             _camera.transform.position = new Vector3(center.x, center.y + 0.5f, -10);
 
-            _bestScore   = HighScoresManager.Instance.BestScore;
-            _lowestScore = HighScoresManager.Instance.BestScore;
+            //OnBestScoreChanged?.Invoke(HighScoresManager.Instance.BestScore);
 
-            OnMoveChanged     ?.Invoke(_moves);
-            OnScoreChanged    ?.Invoke(_score);
-            OnBestScoreChanged?.Invoke(HighScoresManager.Instance.BestScore);
-
-            ChangeState(GameState.GenerateLevel);
+            //ChangeState(GameState.GenerateLevel);
 
         }   // Initialize()
         #endregion
@@ -548,9 +579,9 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void LoseGame()
         {
-            CheckForHighScore();
+            HighScoresManager.Instance.CheckForHighScore(this.Score, this.Moves);
 
-            OnGameOver?.Invoke(GameState.LoseGame);
+            EventManager.RaiseOnGameOver(GameState.LoseGame);
 
         }   // GameOver()
         #endregion
@@ -571,10 +602,49 @@ namespace Assets.Scenes.Game2048.Scripts
             RemoveBlock(baseBlock);
             RemoveBlock(mergingBlock);
 
-            _score += value;
-            OnScoreChanged?.Invoke(_score);
+            this.Score += value;
 
         }   // MergeBlocks()
+        #endregion
+
+
+        #region .  OnDisable()  .
+        //// ---------------------------------------------------------------------
+        ////   Method.......:  OnDisable()
+        ////   Description..:  
+        ////   Parameters...:  None
+        ////   Returns......:  Nothing
+        //// ---------------------------------------------------------------------
+        //private void OnDisable()
+        //{
+        //    EventManager.OnGameOver            -= GameOver;
+        //    EventManager.OnBestScoreChanged    -= UpdateBestcoreText;
+        //    EventManager.OnGameStateChanged    -= UpdateGameStateText;
+        //    EventManager.OnMovesChanged        -= UpdateMovesText;
+        //    EventManager.OnScoreChanged        -= UpdateScoreText;
+        //    EventManager.OnWinConditionChanged -= UpdateWinConditionText;
+
+        //}   // OnDisable()
+        #endregion
+
+
+        #region .  OnEnable()  .
+        //// ---------------------------------------------------------------------
+        ////   Method.......:  OnEnable()
+        ////   Description..:  
+        ////   Parameters...:  None
+        ////   Returns......:  Nothing
+        //// ---------------------------------------------------------------------
+        //private void OnEnable()
+        //{
+        //    GameManager.OnGameOver            += GameOver;
+        //    GameManager.OnBestScoreChanged    += UpdateBestcoreText;
+        //    GameManager.OnGameStateChanged    += UpdateGameStateText;
+        //    GameManager.OnMoveChanged         += UpdateMovesText;
+        //    GameManager.OnScoreChanged        += UpdateScoreText;
+        //    GameManager.OnWinConditionChanged += UpdateWinConditionText;
+
+        //}   // OnEnable()
         #endregion
 
 
@@ -642,6 +712,7 @@ namespace Assets.Scenes.Game2048.Scripts
             foreach (var block in orderBlocks)
             {
                 var movePoint = (block.MergingBlock != null) ? block.MergingBlock.Node.Position : block.Node.Position;
+                SoundManager.Instance.PlayRandomSound("Swish_", 4);
                 sequence.Insert(0, block.transform.DOMove(block.Node.Position, _travelTime));
             }
 
@@ -671,10 +742,8 @@ namespace Assets.Scenes.Game2048.Scripts
             int height = Screen.height;
             int width  = Screen.width;
 
-            if (_winCondition == 0) _winCondition = 32;
-            _textHowToPlay.text = _textHowToPlay.text.Replace("%1", _winCondition.ToString());
-
-            OnWinConditionChanged?.Invoke(_winCondition);
+            if (_winAmount == WinCondition.None) _winAmount = WinCondition.Win32;
+            EventManager.RaiseOnWinConditionChanged(_winAmount);
 
             ChangeState(GameState.Initialize);
 
@@ -706,12 +775,16 @@ namespace Assets.Scenes.Game2048.Scripts
         #region .  SpawnBlocks()  .
         // ---------------------------------------------------------------------
         //   Method.......:  SpawnBlocks()
-        //   Description..:  
-        //   Parameters...:  int
-        //   Returns......:  Nothing
+        //   Description..:  Spawn either 2 blocks (first time) or 1 block (for
+        //                   for all remaining blocks).  Check for WinGame or
+        //                   LoseGame state, if neither return WaitingInput.
+        //   Parameters...:  int - 1 or 2
+        //   Returns......:  GameState : LoseGame | WinGame | WaitingInput
         // ---------------------------------------------------------------------
-        private void SpawnBlocks(int amount)
+        private GameState SpawnBlocks(int amount)
         {
+            GameState state;
+
             var availableNodes = _nodes.Where(n => n.OccupiedBlock == null).OrderBy(b => Random.value).ToList();
 
             // Get 2 nodes on the first round and 1 node for all of the rest.
@@ -721,29 +794,43 @@ namespace Assets.Scenes.Game2048.Scripts
                 SpawnBlock(node, Random.value > 0.8 ? 4 : 2);
             }
 
-            // Check for the game over condition (when there is only one free node left).
-            if (availableNodes.Count() == 1)
-            {
-                ChangeState(GameState.LoseGame);
-                return;
-            }
+            state = (availableNodes.Count() == 1)
+                  ? GameState.LoseGame
+                  : _blocks.Any(b => b.Value == (int)_winAmount) ? GameState.WinGame
+                                                                 : GameState.WaitingInput;
 
-            foreach (var block in _blocks)
-            {
-                if (block.Value == _winCondition)
-                {
-                    ChangeState(GameState.WinGame);
-                    return;
-                }
-            }
+            return state;
 
-            // Check for a wining condition, if not then continue waiting for the users' next move.
-            GameState newState = _blocks.Any(b => b.Value == _winCondition) ? GameState.WinGame : GameState.WaitingInput;
+            //// Check for the game over condition (when there is only one free node left).
+            //if (availableNodes.Count() == 1)
+            //{
+            //    //ChangeState(GameState.LoseGame);
+            //    //return;
+            //    state = GameState.LoseGame;
+            //}
+            //else
+            //{
+            //    // Check for a wining condition, if not then continue waiting for the users' next move.
+            //    state = _blocks.Any(b => b.Value == _winAmount) ? GameState.WinGame : GameState.WaitingInput;
 
-            //Debug.Log($"newState = {newState.ToString()}, Max block value = {_blocks.Max(b => b.Value)}, Need {_winCondition} to win.");
+            //    //foreach (var block in _blocks)
+            //    //{
+            //    //    if (block.Value == _winAmount)
+            //    //    {
+            //    //        //ChangeState(GameState.WinGame);
+            //    //        //return;
+            //    //        state = GameState.WinGame;
+            //    //    }
+            //    //}
+            //}
+
+            //// Check for a wining condition, if not then continue waiting for the users' next move.
+            //GameState newState = _blocks.Any(b => b.Value == _winAmount) ? GameState.WinGame : GameState.WaitingInput;
+
+            //Debug.Log($"newState = {newState.ToString()}, Max block value = {_blocks.Max(b => b.Value)}, Need {_winAmount} to win.");
 
             //ChangeState(newState);
-            ChangeState(GameState.WaitingInput);
+            //ChangeState(GameState.WaitingInput);
 
         }   // SpawnBlocks
         #endregion
@@ -752,21 +839,19 @@ namespace Assets.Scenes.Game2048.Scripts
         #region .  Update()  .
         // ---------------------------------------------------------------------
         //   Method.......:  Update()
-        //   Description..:  
+        //   Description..:  If the current state isn't WaitingInput do nothing.
+        //                   Otherwise, check for user input.
         //   Parameters...:  None
         //   Returns......:  Nothing
         // ---------------------------------------------------------------------
         private void Update()
         {
-            if (_currentState != GameState.WaitingInput)
-            {
-                return;
-            }
+            if (_currentState != GameState.WaitingInput) return;
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow )) { OnMoveChanged?.Invoke(_moves++); ShiftBlocks(Vector2.left ); }
-            if (Input.GetKeyDown(KeyCode.RightArrow)) { OnMoveChanged?.Invoke(_moves++); ShiftBlocks(Vector2.right); }
-            if (Input.GetKeyDown(KeyCode.UpArrow   )) { OnMoveChanged?.Invoke(_moves++); ShiftBlocks(Vector2.up   ); }
-            if (Input.GetKeyDown(KeyCode.DownArrow))  { OnMoveChanged?.Invoke(_moves++); ShiftBlocks(Vector2.down ); }
+            if (Input.GetKeyDown(KeyCode.LeftArrow )) { EventManager.RaiseOnMovesChanged(++this.Moves); ShiftBlocks(Vector2.left ); }
+            if (Input.GetKeyDown(KeyCode.RightArrow)) { EventManager.RaiseOnMovesChanged(++this.Moves); ShiftBlocks(Vector2.right); }
+            if (Input.GetKeyDown(KeyCode.UpArrow   )) { EventManager.RaiseOnMovesChanged(++this.Moves); ShiftBlocks(Vector2.up   ); }
+            if (Input.GetKeyDown(KeyCode.DownArrow))  { EventManager.RaiseOnMovesChanged(++this.Moves); ShiftBlocks(Vector2.down ); }
 
         }   // Update()
         #endregion
@@ -781,9 +866,11 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void WinGame()
         {
-            CheckForHighScore();
+            //Debug.Log("Congratulations!  You've won the game!"); 
 
-            OnGameOver?.Invoke(GameState.WinGame);
+            HighScoresManager.Instance.CheckForHighScore(this.Score, this.Moves);
+            SoundManager     .Instance.PlaySound(SoundManager.Sounds.WinGame_3);
+            EventManager     .RaiseOnGameOver(GameState.WinGame);
 
         }   // WinGame()
         #endregion

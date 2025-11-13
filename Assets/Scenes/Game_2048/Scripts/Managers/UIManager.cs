@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 
 
-namespace Assets.Scenes.Game2048.Scripts
+namespace Assets.Scenes.Game2048.Scripts.Managers
 {
     public class UIManager : MonoBehaviour
     {
@@ -15,6 +15,7 @@ namespace Assets.Scenes.Game2048.Scripts
         //   _textBestValue
         //   _textGameOverLabel
         //   _textGameStateLabel
+        //   _textHowToPlay
         //   _textMovesValue
         //   _textScoreValue
         //   _textWinConditionValue
@@ -28,6 +29,7 @@ namespace Assets.Scenes.Game2048.Scripts
         [SerializeField] private TMP_Text     _textBestValue;
         [SerializeField] private TMP_Text     _textGameOverLabel;
         [SerializeField] private TMP_Text     _textGameStateLabel;
+        [SerializeField] private TMP_Text     _textHowToPlay;
         [SerializeField] private TMP_Text     _textMovesValue;
         [SerializeField] private TMP_Text     _textScoreValue;
         [SerializeField] private TMP_Text     _textWinConditionValue;
@@ -43,10 +45,10 @@ namespace Assets.Scenes.Game2048.Scripts
         //   GameOver()
         //   OnDisable()
         //   OnEnable()
+        //   UpdateBestcoreText()
         //   UpdateGameStateText()
         //   UpdateMovesText()
         //   UpdateScoreText()
-        //   UpdateWinText()
         //   UpdateWinConditionText()
         // -------------------------------------------------------------------------
 
@@ -78,12 +80,12 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void OnDisable()
         {
-            GameManager.OnGameOver            -= GameOver;
-            GameManager.OnBestScoreChanged    -= UpdateBestText;
-            GameManager.OnGameStateChanged    -= UpdateGameStateText;
-            GameManager.OnMoveChanged         -= UpdateMovesText;
-            GameManager.OnScoreChanged        -= UpdateScoreText;
-            GameManager.OnWinConditionChanged -= UpdateWinConditionText;
+            EventManager.OnGameOver            -= GameOver;
+            EventManager.OnBestScoreChanged    -= UpdateBestcoreText;
+            EventManager.OnGameStateChanged    -= UpdateGameStateText;
+            EventManager.OnMovesChanged        -= UpdateMovesText;
+            EventManager.OnScoreChanged        -= UpdateScoreText;
+            EventManager.OnWinConditionChanged -= UpdateWinConditionText;
 
         }   // OnDisable()
         #endregion
@@ -98,36 +100,36 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
         private void OnEnable()
         {
-            GameManager.OnGameOver            += GameOver;
-            GameManager.OnBestScoreChanged    += UpdateBestText;
-            GameManager.OnGameStateChanged    += UpdateGameStateText;
-            GameManager.OnMoveChanged         += UpdateMovesText;
-            GameManager.OnScoreChanged        += UpdateScoreText;
-            GameManager.OnWinConditionChanged += UpdateWinConditionText;
+            EventManager.OnGameOver            += GameOver;
+            EventManager.OnBestScoreChanged    += UpdateBestcoreText;
+            EventManager.OnGameStateChanged    += UpdateGameStateText;
+            EventManager.OnMovesChanged        += UpdateMovesText;
+            EventManager.OnScoreChanged        += UpdateScoreText;
+            EventManager.OnWinConditionChanged += UpdateWinConditionText;
 
         }   // OnEnable()
         #endregion
 
 
-        #region .  UpdateBestText()  .
+        #region .  UpdateBestcoreText()  .
         // -------------------------------------------------------------------------
-        //   Method.......:  UpdateBestText()
+        //   Method.......:  UpdateBestcoreText()
         //   Description..:  
         //   Parameters...:  int
         //   Returns......:  Nothing
         // -------------------------------------------------------------------------
-        private void UpdateBestText(int value)
+        private void UpdateBestcoreText(int value)
         {
             _textBestValue.text = value.ToString();
             PlayerPrefs.SetInt("BestScore", value);
 
-        }   // UpdateBestText()
+        }   // UpdateBestcoreText()
         #endregion
 
 
-        #region .  UpdateGameState()  .
+        #region .  UpdateGameStateText()  .
         // -------------------------------------------------------------------------
-        //   Method.......:  UpdateGameState()
+        //   Method.......:  UpdateGameStateText()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
@@ -141,7 +143,7 @@ namespace Assets.Scenes.Game2048.Scripts
 
             _textGameStateLabel.text = $"Game State:  <color={color}><b>{state.ToString()}</b></color>";
 
-        }   // UpdateGameState()
+        }   // UpdateGameStateText()
         #endregion
 
 
@@ -182,14 +184,16 @@ namespace Assets.Scenes.Game2048.Scripts
         //   Parameters...:  int
         //   Returns......:  Nothing
         // -------------------------------------------------------------------------
-        private void UpdateWinConditionText(int value)
+        private void UpdateWinConditionText(WinCondition value)
         {
-            _textWinConditionValue.text = value.ToString();
+            int amount                  = (int)value;
+            _textWinConditionValue.text = amount.ToString();
+            _textHowToPlay        .text = _textHowToPlay.text.Replace("%1", amount.ToString());
 
         }   // UpdateWinConditionText()
         #endregion
 
 
     }   // class UIManager
-
-}   // namespace Assets.Scenes.Game2048.Scripts
+    
+}   // namespace Assets.Scenes.Game2048.Scripts.Managers

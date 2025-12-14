@@ -3,23 +3,21 @@
 echo ----------------------------------------------------------------------------
 echo IMPORTANT:
 echo ----------------------------------------------------------------------------
+echo   1.  Close Unity and Visual Studio BEFORE running this batch file.
 echo.
-echo   1.  Create the github repository BEFORE running this batch file.
-echo       a.  Example description:  2D project examples using Unity 2022.3.62f2
-echo.
-echo   2.  Close Unity and Visual Studio BEFORE running this batch file.
-echo.
-echo   3.  Do NOT add a .gitignore or a README.md file in github:
+echo   2.  Do NOT add a .gitignore or a README.md file in github:
 echo       a.  Add the .gitignore file to you Unity project.
 echo       b.  The README.md file is created from this batch file.
-echo.
 echo ----------------------------------------------------------------------------
 echo.
+set GIT_TRACE_PACKET=1
+set GIT_TRACE=1
+set GIT_CURL_VERBOSE=1
 
 rem ----------------------------------------------------------------------------
 rem  Configure some git settings.
 rem ----------------------------------------------------------------------------
-set project_name=2D_URP_Stuff
+set project_name=2D_URP_Spinning_Circle
 set editor_version=2022.3.62f2
 set local_directory=C:/Repos/Unity/%editor_version%/%project_name%
 set remote_origin=https://github.com/RandallPrice-420/%project_name%
@@ -31,65 +29,109 @@ echo project_name.....:  %project_name%
 echo editor_version...:  %editor_version%
 echo local_directory..:  %local_directory%
 echo remote_origin....:  %remote_origin%
-echo.
 
 rem ----------------------------------------------------------------------------
-rem  Configure some github global settings..
+rem  Check if the remote repository is already created in GitHub.
 rem ----------------------------------------------------------------------------
-echo on
-git config --global --add safe.directory %local_directory%
-git config --global user.email "randall_price@hotmail.com"
-git config --global user.name  "Randall Price"
+:Check_Repository
 echo.
-@echo off
+set /p check="Is the %project_name% repository in GitHub? (Enter=Y, Y, N)  "
+if not defined check ( set "check=y" )
+if /I "%check%"=="y" goto Repository_Ready
+if /I "%check%"=="n" goto Prompt_Create_Repository
+echo You must enter Y or N.
+goto Check_Repository
 
 rem ----------------------------------------------------------------------------
-rem  Prompt for the step to perform.
+rem  Prompt to create the remote repository in GitHub.
 rem ----------------------------------------------------------------------------
-set /p step= "Enter the step to perform (F = First time, A = ADD changes and commit, Q = quit):  "
-rem echo You entered %step%
-if "%step%"=="f" goto First_Time
-if "%step%"=="F" goto First_Time
-if "%step%"=="a" goto Add_And_Commit
-if "%step%"=="A" goto Add_And_Commit
-if "%step%"=="q" goto Quit
-if "%step%"=="Q" goto Quit
+:Prompt_Create_Repository
+echo.
+set /p open="Create the %project_name% repository in GitHub? (Enter=Y, Y, N)  "
+if not defined open ( set "open=y" )
+if /I "%open%"=="y" goto Create_Repository
+if /I "%open%"=="n" goto No_Repository
+echo.
+echo You must enter Y or N.
+goto Prompt_Create_Repository
+
+rem ----------------------------------------------------------------------------
+rem  Create the remote repository in GitHub.
+rem   https://github.com/RandallPrice-420?tab=repositories
+rem ----------------------------------------------------------------------------
+:Create_Repository
+echo.
+echo Creating %project_name% repository in GitHub...
+rem gh auth login
+gh repo create %remote_origin% --public
+start msedge %remote_origin%
+
+rem ----------------------------------------------------------------------------
+rem  Repository in GitHub, prompt for the step to perform.
+rem ----------------------------------------------------------------------------
+:Repository_Ready
+echo.
+set /p step= "Enter the step to perform (F = First time, A = ADD changes and commit, Q = Quit):  "
+rem echo You entered:  %step%
+if /I "%step%"=="f" goto First_Time
+if /I "%step%"=="a" goto Add_And_Commit
+if /I "%step%"=="q" goto Done
+echo You must enter F, A or Q.
+pause
+goto Repository_Ready
 
 :First_Time
 rem ----------------------------------------------------------------------------
 rem One-time configuration for this project.
 rem
-rem  - Initialize the repository
-rem  - Set the remote origin  
-rem  - Refresh the local files from the master branch
+rem  - Configure some github global settings
+rem  - Delete the README.md file if it exists
 rem  - Create the README.md file
-rem  - Add and commit the changes
+rem  - Initialize the repository
+rem  - Add and commit the README.md file
+rem  - Refresh the local files from the master branch
+rem  - Set the remote origin  
 rem  - Push to the remote repository
+rem  - Show the status
 rem ----------------------------------------------------------------------------
-echo %project_name%                                   >> README.md
-echo.                                                 >> README.md
-echo %project_name% game using Unity %editor_version%.>> README.md
-echo.                                                 >> README.md
+echo.
+git config --global --add safe.directory %local_directory%
+git config --global user.email "randall_price@hotmail.com"
+git config --global user.name  "Randall Price"
 
-echo on
+rem ----------------------------------------------------------------------------
+rem  These settings are to resolve the following error:
+rem    error: RPC failed; HTTP 408 curl 22 The requested URL returned error: 408
+rem    send-pack: unexpected disconnect while reading sideband packet
+rem    fatal: the remote end hung up unexpectedly
+rem 157286400
+rem ----------------------------------------------------------------------------
+git config --global http.postBuffer 524288000
+git config --global core.compression 0
+echo.
+
+set filePath=README.md
+if exist %filePath% (
+     del %filePath%
+    echo %filePath% file deleted.
+)
+echo ^<h1^>%project_name%^<^/h1^>>> %filePath%
+echo.>> %filePath%
+echo %project_name% game using Unity %editor_version%.>> %filePath%
+echo.>> %filePath%
+
 git init
-git remote add origin %remote_origin%
+git add %filePath%
+git commit -m "Initial project upload."
 git branch -M master
-git add README.md
-git commit -m "Setup:  README.md and remote origin."
+git remote add origin %remote_origin%
 git push -u origin master
 git status
-@echo off
 
 echo.
 echo First time configuration:
-echo   - GIT initialized
-echo   - remote origin...:  %remote_origin%
-echo   - README.md file..:  created
-echo   - README.md file..:  committed
-echo   - README.md file..:  pushed to remote
+echo   - %filePath% created and commited.
 echo.
-goto Done
 
 
 :Add_And_Commit
@@ -101,23 +143,37 @@ rem  - Push to the remote repository
 rem ----------------------------------------------------------------------------
 set "defaultValue=Initial project upload."
 set /p "commit_message=Enter commit message (Enter = <%defaultValue%>, Q = Quit):  "
+if /I "%commit_message%"=="q" goto Done
 if not defined commit_message ( set "commit_message=%defaultValue%" )
 echo You entered: %commit_message%
-if "%commit_message%"=="q" goto Quit
-if "%commit_message%"=="Q" goto Quit
 
-echo on
 git pull origin master
 git add .
 git commit -m "%commit_message%"
 git push -u origin master
-@echo off
 
 echo.
-echo - Changed files committed and pushed to remote repository successfully.
+echo - Changed files successfully committed and pushed to remote repository .
 echo.
+pause
+exit
 
+
+rem ----------------------------------------------------------------------------
+rem  Repository in GitHub.
+rem ----------------------------------------------------------------------------
+:No_Repository
+echo.
+echo - Repository is NOT in GitHub and will NOT be created.
+echo.
+pause
+exit
+
+rem ----------------------------------------------------------------------------
+rem  Finished!
+rem ----------------------------------------------------------------------------
 :Done
-:Quit
+echo.
+echo Done
 pause
 exit

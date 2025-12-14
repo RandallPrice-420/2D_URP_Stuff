@@ -6,7 +6,7 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 {
     public class EventManager : MonoBehaviour
     {
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         // Public Static Events:
         // ---------------------
         //   OnBestScoreChanged
@@ -15,7 +15,7 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         //   OnMovesChanged
         //   OnScoreChanged
         //   OnWinConditionChanged
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
 
         #region .  Public Static Events  .
 
@@ -31,7 +31,7 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
 
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         // Public Methods:
         // ---------------
         //   RaiseOnBestScoreChanged()
@@ -40,16 +40,16 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         //   RaiseOnMovesChanged()
         //   RaiseOnScoreChanged()
         //   RaiseOnWinConditionChanged()
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
 
 
         #region .  RaiseOnBestScoreChanged()  .
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         //   Method.......:  RaiseOnBestScoreChanged()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         public static void RaiseOnBestScoreChanged(int score)
         {
             OnBestScoreChanged?.Invoke(score);
@@ -59,12 +59,12 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         #region .  RaiseOnGameOver()  .
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         //   Method.......:  RaiseOnGameOver()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         public static void RaiseOnGameOver(GameState state)
         {
             OnGameOver?.Invoke(state);
@@ -74,12 +74,12 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         #region .  RaiseOnGameStateChanged()  .
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         //   Method.......:  RaiseOnGameStateChanged()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         public static void RaiseOnGameStateChanged(GameState state)
         {
             OnGameStateChanged?.Invoke(state);
@@ -89,12 +89,12 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         #region .  RaiseOnMovesChanged()  .
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         //   Method.......:  RaiseOnMovesChanged()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         public static void RaiseOnMovesChanged(int moves)
         {
             OnMovesChanged?.Invoke(moves);
@@ -104,12 +104,12 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         #region .  RaiseOnScoreChanged()  .
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         //   Method.......:  RaiseOnScoreChanged()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         public static void RaiseOnScoreChanged(int score)
         {
             OnScoreChanged?.Invoke(score);
@@ -119,12 +119,12 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         #region .  RaiseOnWinConditionChanged()  .
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         //   Method.......:  RaiseOnWinConditionChanged()
         //   Description..:  
         //   Parameters...:  None
         //   Returns......:  Nothing
-        // -------------------------------------------------------------------------
+        // ---------------------------------------------------------------------
         public static void RaiseOnWinConditionChanged(WinCondition value)
         {
             OnWinConditionChanged?.Invoke(value);

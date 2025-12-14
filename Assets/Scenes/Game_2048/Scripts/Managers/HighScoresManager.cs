@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -108,20 +107,17 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         //   _colorSilver
         //   _colorBronze
         //   _highScores
-        //   _highScoresListForDisplay
         //   _HIGH_SCORE_TABLE
         // ---------------------------------------------------------------------
 
         #region .  Private Properties  .
 
-        private Color           _colorGold;
-        private Color           _colorSilver;
-        private Color           _colorBronze;
-        private HighScores      _highScores;
+        private Color        _colorGold;
+        private Color        _colorSilver;
+        private Color        _colorBronze;
+        private HighScores   _highScores;
 
-        private List<Transform> _highScoresListForDisplay = new();
-
-        private const string    _HIGH_SCORE_TABLE = "HighScoreTable";
+        private const string _HIGH_SCORE_TABLE = "HighScoreTable";
 
         #endregion
 
@@ -136,6 +132,8 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         //   DeleteHighScoresFromPlayerPrefs()
         //   DisplayHighScores()
         //   GetHighScores()
+        //   GetPlayerName()
+        //   GetRandomString()
         //   Initialize()
         // ---------------------------------------------------------------------
 
@@ -210,8 +208,6 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
                 }
             }
 
-            //Debug.Log($"Found {matchingObjects.Count} objects with the name '{targetName}'.");
-
             // Destroy them.
             foreach (GameObject gameObject in matchingObjects)
             {
@@ -219,6 +215,9 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
                 Destroy(gameObject);
             }
 
+            // Delete the high score keys from the Registry.
+            DeleteHighScoresFromPlayerPrefs();
+                
         }   // ClearHighScoresDisplay()
         #endregion
 
@@ -235,45 +234,6 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         // ---------------------------------------------------------------------
         public void CheckForHighScore(int score, int moves)
         {
-            #region .  Old Code  .
-            //bool newHighScore = false;
-
-            //if (_highScores == null)
-            //{
-            //    newHighScore = true;
-            //}
-            //else
-            //{
-            //    for (int i = 0; i < HighScoreCount; i++)
-            //    {
-            //        HighScoreEntry highScoreEntry = _highScores.HighScoresList[i];
-            //        if (score > highScoreEntry.score)
-            //        {
-            //            newHighScore = true;
-            //        }
-            //    }
-            //}
-
-            //if (newHighScore)
-            //{
-            //    // New high score!
-            //    AddHighScoreEntry(score, moves, GetPlayerName(5));
-            //    GetHighScores();
-            //    DisplayHighScores();
-            //}
-
-            //if (HighScoreCount < MaximumEntries)
-            //{
-            //    AddHighScoreEntry(score, moves, GetPlayerName(5));
-            //    GetHighScores();
-            //    DisplayHighScores();
-            //}
-            //else
-            //{
-            //    Debug.Log($"Cannot add a new entry, already reached the maximum of {MaximumEntries}");
-            //}
-            #endregion
-
             // New high score!
             AddHighScoreEntry(score, moves, GetPlayerName(5));
             GetHighScores();
@@ -526,11 +486,9 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         {
             _entryTemplate.gameObject.SetActive(false);
 
-            _highScoresListForDisplay = new();
-
-            _colorGold   = GetColorFromString("FFD200");
-            _colorSilver = GetColorFromString("C6C6C6");
-            _colorBronze = GetColorFromString("B76F56");
+            _colorGold   = Utils.Instance.GetColorFromString("FFD200");
+            _colorSilver = Utils.Instance.GetColorFromString("C6C6C6");
+            _colorBronze = Utils.Instance.GetColorFromString("B76F56");
 
             // Load the high scores from PlayerPrefs and get these variables:
             // (1) _highScores, (2) BestScore, (3) LowestScore
@@ -546,8 +504,6 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         // Private Methods:
         // ----------------
         //   CreateHighScoreEntry()
-        //   GetColorFromString()
-        //   Hex_To_Dec()
         //   SortHighScores()
         //   Start()
         // ---------------------------------------------------------------------
@@ -621,48 +577,6 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
             transformList.Add(entryTransform);
 
         }   // CreateHighScoreEntry()
-        #endregion
-
-
-        #region .  GetColorFromString()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  GetColorFromString()
-        //   Description..:  Get Color from Hex string, like FF00FFAA.
-        //   Parameters...:  string
-        //   Returns......:  Color
-        // ---------------------------------------------------------------------
-        // Get Color from Hex string FF00FFAA
-        private Color GetColorFromString(string color)
-        {
-            float red   = Hex_To_Dec(color.Substring(0, 2));
-            float green = Hex_To_Dec(color.Substring(2, 2));
-            float blue  = Hex_To_Dec(color.Substring(4, 2));
-            float alpha = 1f;
-
-            if (color.Length >= 8)
-            {
-                // Color string contains alpha.
-                alpha = Hex_To_Dec(color.Substring(6, 2));
-            }
-
-            return new Color(red, green, blue, alpha);
-
-        }   // GetColorFromString()
-        #endregion
-
-
-        #region .  Hex_To_Dec()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  Hex_To_Dec()
-        //   Description..:  Convert hex string yo a float.
-        //   Parameters...:  string
-        //   Returns......:  float
-        // ---------------------------------------------------------------------
-        private float Hex_To_Dec(string hex)
-        {
-            return Convert.ToInt32(hex, 16) / 255f;
-
-        }   // Hex_To_Dec()
         #endregion
 
 

@@ -129,7 +129,7 @@ public class GameBoard : Singleton<GameBoard>
 
                 Vector3Int neighbor = cell + new Vector3Int(x, y, 0);
 
-				if (this.IsAlive(neighbor)) count++;
+                if (this.IsAlive(neighbor)) count++;
             }
         }
 

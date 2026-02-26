@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 using TMPro;
 using UnityEngine;
 
@@ -7,15 +6,15 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     // -------------------------------------------------------------------------
-    // Private Properties:
-    // -------------------
+    // Private Variables:
+    // ------------------
     //   _allPatterns
     //   _currentPattern
     //   _currentPatternIndex
     //   _dropdownPatterns
     // -------------------------------------------------------------------------
 
-    #region .  Private Properties  .
+    #region .  Private Variables  .
 
     private Pattern[]    _allPatterns;
     private Pattern      _currentPattern;

@@ -22,6 +22,7 @@ namespace Assets.Scenes.Game2048.Scripts
         #endregion
 
 
+
         // ---------------------------------------------------------------------
         // Public Methods:
         // ---------------
@@ -186,6 +187,7 @@ namespace Assets.Scenes.Game2048.Scripts
 
         }   // ScaleObjectY()
         #endregion
+
 
 
         // ---------------------------------------------------------------------

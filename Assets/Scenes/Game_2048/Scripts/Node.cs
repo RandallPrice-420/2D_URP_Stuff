@@ -20,13 +20,13 @@ namespace Assets.Scenes.Game2048.Scripts
         // ---------------------------------------------------------------------
 
         // ---------------------------------------------------------------------
-        // Public Properties:
-        // ------------------
+        // Public Variables:
+        // -----------------
         //   Index
         //   OccupiedBlock
         // ---------------------------------------------------------------------
 
-        #region .  Public Properties  .
+        #region .  Public Variables  .
 
         public int   Index;
         public Block OccupiedBlock;

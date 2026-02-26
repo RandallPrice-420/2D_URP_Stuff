@@ -54,13 +54,13 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         // ---------------------------------------------------------------------
-        // Public Properties:
-        // ------------------
+        // Public Variables:
+        // -----------------
         //   Audio
         //   SoundAudioClips
         // ---------------------------------------------------------------------
 
-        #region .  Public Properties  .
+        #region .  Public Variables  .
 
         public AudioSource      Audio;
         public SoundAudioClip[] SoundAudioClips;

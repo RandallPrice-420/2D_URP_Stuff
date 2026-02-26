@@ -175,9 +175,8 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         //   _panelGameOver
         //   _panelHighScores
         //   _playerName
-        //   _textHowToPlay
-        //
         //   _playerNameLength
+        //   _textHowToPlay
         //   _travelTime
         //   _winAmount
         // ---------------------------------------------------------------------
@@ -194,9 +193,8 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         [SerializeField] private GameObject      _panelGameOver;
         [SerializeField] private GameObject      _panelHighScores;
         [SerializeField] private string          _playerName;
-        [SerializeField] private TMP_Text        _textHowToPlay;
-
         [SerializeField] private int             _playerNameLength = 5;
+        [SerializeField] private TMP_Text        _textHowToPlay;
         [SerializeField] private float           _travelTime       = 0.5f;
         [SerializeField] private WinCondition    _winAmount        = WinCondition.Win64;
 
@@ -205,7 +203,7 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         // ---------------------------------------------------------------------
-        // Private Properties:
+        // Private Variables:
         // -------------------
         //   _bestScore
         //   _lowestScore
@@ -217,7 +215,7 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         //   _score
         // ---------------------------------------------------------------------
 
-        #region .  Private Properties  .
+        #region .  Private Variables  .
 
         private int         _bestScore;
         private int         _lowestScore;
@@ -393,9 +391,9 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         //   MergeBlocks
         //   RemoveBlock()
         //   ShiftBlocks()
-        //   Start()
         //   SpawnBlock()
         //   SpawnBlocks()
+        //   Start()
         //   Update()
         // ---------------------------------------------------------------------
 
@@ -646,27 +644,6 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         #endregion
 
 
-        #region .  Start()  .
-        // ---------------------------------------------------------------------
-        //   Method.......:  Start()
-        //   Description..:  
-        //   Parameters...:  None
-        //   Returns......:  Nothing
-        // ---------------------------------------------------------------------
-        private void Start()
-        {
-            int height = Screen.height;
-            int width  = Screen.width;
-
-            if (_winAmount == WinCondition.None) _winAmount = WinCondition.Win32;
-            EventManager.RaiseOnWinConditionChanged(_winAmount);
-
-            ChangeState(GameState.Initialize);
-
-        }   // Start()
-        #endregion
-
-
         #region .  SpawnBlock()  .
         // ---------------------------------------------------------------------
         //   Method.......:  SpawnBlock()
@@ -758,6 +735,27 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
             //ChangeState(GameState.WaitingInput);
 
         }   // SpawnBlocks
+        #endregion
+
+
+        #region .  Start()  .
+        // ---------------------------------------------------------------------
+        //   Method.......:  Start()
+        //   Description..:  
+        //   Parameters...:  None
+        //   Returns......:  Nothing
+        // ---------------------------------------------------------------------
+        private void Start()
+        {
+            int height = Screen.height;
+            int width  = Screen.width;
+
+            if (_winAmount == WinCondition.None) _winAmount = WinCondition.Win32;
+            EventManager.RaiseOnWinConditionChanged(_winAmount);
+
+            ChangeState(GameState.Initialize);
+
+        }   // Start()
         #endregion
 
 

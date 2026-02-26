@@ -63,13 +63,13 @@ namespace Assets.Scenes.HighScoreTable.Scripts
 
 
         // ---------------------------------------------------------------------
-        // Private Properties:
+        // Private Variables:
         // -------------------
         //   _highScoreEntryList
         //   _HIGH_SCORE_TABLE
         // ---------------------------------------------------------------------
 
-        #region .  Private Properties  .
+        #region .  Private Variables  .
 
         private List<Transform> _highScoreEntryList;
         private const string    _HIGH_SCORE_TABLE = "HighScoreTable";

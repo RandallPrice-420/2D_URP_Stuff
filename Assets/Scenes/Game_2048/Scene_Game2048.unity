@@ -6849,8 +6849,8 @@ MonoBehaviour:
   _panelGameOver: {fileID: 999049410}
   _panelHighScores: {fileID: 811938528}
   _playerName: 
-  _textHowToPlay: {fileID: 126242474}
   _playerNameLength: 4
+  _textHowToPlay: {fileID: 126242474}
   _travelTime: 0.2
   _winAmount: 16
 --- !u!1 &1496949525
@@ -7824,8 +7824,8 @@ MonoBehaviour:
   _textGameOverLabel: {fileID: 2071372763}
   _textGameStateLabel: {fileID: 1154091847}
   _textHowToPlay: {fileID: 126242474}
-  _textResultLabel: {fileID: 1195371250}
   _textMovesValue: {fileID: 1824672440}
+  _textResultLabel: {fileID: 1195371250}
   _textScoreValue: {fileID: 613058292}
   _textWinConditionValue: {fileID: 806542666}
   _textYouWinLabel: {fileID: 1125407729}
@@ -9390,13 +9390,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 866c4edf6ecff074997e5d34e14c4ec1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _targetLocation: {x: 0, y: 0, z: 0}
-  _moveDuration: 1
+  _doTweenType: 0
   _moveEase: 1
   _targetColor: {r: 0, g: 0, b: 0, a: 0}
+  _targetLocation: {x: 0, y: 0, z: 0}
+  _moveDuration: 1
   _scaleMultiplier: 3
   _colorChangeDuration: 1
-  _doTweenType: 0
 --- !u!1 &2071372761
 GameObject:
   m_ObjectHideFlags: 0

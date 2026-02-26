@@ -28,10 +28,12 @@ using UnityEngine;
         }
 
 
-        // Start is called before the first frame update
         private void Start()
         {
-            if (_targetLocation == Vector3.zero) _targetLocation = transform.position;
+            if (_targetLocation == Vector3.zero)
+            {
+                _targetLocation = transform.position;
+            }
 
             if (_doTweenType == DoTweenType.MovementOneWay)
             {
@@ -45,23 +47,23 @@ using UnityEngine;
             {
                 Vector3 originalLocation = transform.position;
                 DOTween.Sequence()
-                    .Append(transform.DOMove(_targetLocation,  _moveDuration).SetEase(_moveEase))
-                    .Append(transform.DOMove(originalLocation, _moveDuration).SetEase(_moveEase));
+                       .Append(transform.DOMove(_targetLocation,  _moveDuration).SetEase(_moveEase))
+                       .Append(transform.DOMove(originalLocation, _moveDuration).SetEase(_moveEase));
             }
             else if (_doTweenType == DoTweenType.MovementOneWayColorChange)
             {
                 DOTween.Sequence()
-                    .Append(transform.DOMove(_targetLocation, _moveDuration).SetEase(_moveEase))
-                    .Append(transform.GetComponent<Renderer>().material
-                    .DOColor(_targetColor, _colorChangeDuration).SetEase(_moveEase));
+                       .Append(transform.DOMove(_targetLocation, _moveDuration).SetEase(_moveEase))
+                       .Append(transform.GetComponent<Renderer>().material
+                       .DOColor(_targetColor, _colorChangeDuration).SetEase(_moveEase));
             }
             else if (_doTweenType == DoTweenType.MovementOneWayColorChangeAndScale)
             {
                 DOTween.Sequence()
-                    .Append(transform.DOMove (_targetLocation,  _moveDuration)       .SetEase(_moveEase))
-                    .Append(transform.DOScale(_scaleMultiplier, _moveDuration / 2.0f).SetEase(_moveEase))
-                    .Append(transform.GetComponent<Renderer>().material
-                    .DOColor(_targetColor, _colorChangeDuration)                     .SetEase(_moveEase));
+                       .Append(transform.DOMove (_targetLocation,  _moveDuration)       .SetEase(_moveEase))
+                       .Append(transform.DOScale(_scaleMultiplier, _moveDuration / 2.0f).SetEase(_moveEase))
+                       .Append(transform.GetComponent<Renderer>().material
+                       .DOColor(_targetColor, _colorChangeDuration)                     .SetEase(_moveEase));
             }
 
         }   // Start()

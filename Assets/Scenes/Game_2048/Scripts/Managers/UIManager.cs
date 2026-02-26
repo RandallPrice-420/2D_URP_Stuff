@@ -9,8 +9,8 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
     public class UIManager : MonoBehaviour
     {
         // ---------------------------------------------------------------------
-        // Serialized Fields:
-        // ------------------
+        // Private Serialize Fields:
+        // -------------------------
         //   _buttonSprites
         //   _panelGameOver
         //   _rotation
@@ -34,8 +34,8 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         [SerializeField] private TMP_Text     _textGameOverLabel;
         [SerializeField] private TMP_Text     _textGameStateLabel;
         [SerializeField] private TMP_Text     _textHowToPlay;
-        [SerializeField] private TMP_Text     _textResultLabel;
         [SerializeField] private TMP_Text     _textMovesValue;
+        [SerializeField] private TMP_Text     _textResultLabel;
         [SerializeField] private TMP_Text     _textScoreValue;
         [SerializeField] private TMP_Text     _textWinConditionValue;
         [SerializeField] private TMP_Text     _textYouWinLabel;

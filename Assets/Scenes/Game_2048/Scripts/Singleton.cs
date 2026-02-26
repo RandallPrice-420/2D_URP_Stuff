@@ -6,12 +6,12 @@ namespace Assets.Scenes.Game2048.Scripts
     public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
         // ---------------------------------------------------------------------
-        // Private Properties:
-        // -------------------
+        // Private Variables:
+        // ------------------
         //   _instance
         // ---------------------------------------------------------------------
 
-        #region .  Private Properties  .
+        #region .  Private Variables  .
 
         private static T _instance;
 
@@ -20,12 +20,12 @@ namespace Assets.Scenes.Game2048.Scripts
 
 
         // ---------------------------------------------------------------------
-        // Public Properties:
-        // ------------------
+        // Public Variables:
+        // -----------------
         //   Instance
         // ---------------------------------------------------------------------
 
-        #region .  Public Properties  .
+        #region .  Public Variables  .
 
         public static T Instance
         {

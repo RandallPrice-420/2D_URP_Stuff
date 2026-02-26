@@ -53,15 +53,15 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         // ---------------------------------------------------------------------
-        // Public Properties:
-        // ------------------
+        // Public Variables:
+        // -----------------
         //   BestScore
         //   LowestScore
         //   HighScoreCount
         //   MaximumEntries
         // ---------------------------------------------------------------------
 
-        #region .  Public Properties  .
+        #region .  Public Variables  .
 
         public int BestScore      =  0;
         public int LowestScore    =  0;
@@ -101,7 +101,7 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
 
 
         // ---------------------------------------------------------------------
-        // Private Properties:
+        // Private Variables:
         // -------------------
         //   _colorGold
         //   _colorSilver
@@ -110,7 +110,7 @@ namespace Assets.Scenes.Game2048.Scripts.Managers
         //   _HIGH_SCORE_TABLE
         // ---------------------------------------------------------------------
 
-        #region .  Private Properties  .
+        #region .  Private Variables  .
 
         private Color        _colorGold;
         private Color        _colorSilver;

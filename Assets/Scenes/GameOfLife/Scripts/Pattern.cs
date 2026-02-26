@@ -7,13 +7,13 @@ public class Pattern : ScriptableObject
 {
 
     // -------------------------------------------------------------------------
-    // Public Properties:
+    // Public Variables:
     // ------------------
     //   AllPatterns
     //   Cells
     // -------------------------------------------------------------------------
 
-    #region .  Public Properties  .
+    #region .  Public Variables  .
 
     public Pattern[]    AllPatterns;
     public Vector2Int[] cells;

@@ -8,14 +8,14 @@ using UnityEngine.Tilemaps;
 public class GameBoard : Singleton<GameBoard>
 {
     // -------------------------------------------------------------------------
-    // Public Properties:
-    // ------------------
+    // Public Variables:
+    // -----------------
     //   Iterations
     //   PatternTime
     //   Population
     // -------------------------------------------------------------------------
 
-    #region .  Public Properties  .
+    #region .  Public Variables  .
 
     public int   Iterations  { get; private set; }
     public float PatternTime { get; private set; }
@@ -28,20 +28,20 @@ public class GameBoard : Singleton<GameBoard>
     // -------------------------------------------------------------------------
     // Private Serialize Fields:
     // -------------------------
-    //   _currentStat
-    //   _nextStat
     //   _aliveTil
+    //   _currentStat
     //   _deadTil
+    //   _nextStat
     //   _pattern
     //   _updateInterval
     // -------------------------------------------------------------------------
 
-    #region .  Public Properties  .
+    #region .  Private Serialize Fields  .
 
-    [SerializeField] private Tilemap _currentState;
-    [SerializeField] private Tilemap _nextState;
     [SerializeField] private Tile    _aliveTile;
+    [SerializeField] private Tilemap _currentState;
     [SerializeField] private Tile    _deadTile;
+    [SerializeField] private Tilemap _nextState;
     [SerializeField] private Pattern _pattern;
     [SerializeField] private float   _updateInterval = 0.05f;
 
@@ -50,14 +50,14 @@ public class GameBoard : Singleton<GameBoard>
 
 
     // -------------------------------------------------------------------------
-    // Private Properties:
+    // Private Variables:
     // -------------------
     //   _aliveCells
     //   _cellsToCheck
     //   _UIManager
     // -------------------------------------------------------------------------
 
-    #region .  Public Properties  .
+    #region .  Private Variables  .
 
     private readonly HashSet<Vector3Int> _aliveCells   = new HashSet<Vector3Int>();
     private readonly HashSet<Vector3Int> _cellsToCheck = new HashSet<Vector3Int>();

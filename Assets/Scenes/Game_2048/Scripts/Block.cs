@@ -6,15 +6,15 @@ namespace Assets.Scenes.Game2048.Scripts
     public class Block : MonoBehaviour
     {
         // ---------------------------------------------------------------------
-        // Public Properties:
-        // ------------------
+        // Public Variables:
+        // -----------------
         //   Value
         //   Node
         //   Merging
         //   MergingBlock
         // ---------------------------------------------------------------------
 
-        #region .  Public Properties  .
+        #region .  Public Variables  .
 
         public int   Value;
         public Node  Node;
